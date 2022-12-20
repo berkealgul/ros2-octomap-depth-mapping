@@ -14,5 +14,7 @@
 
   <export>
     <build_type>ament_cmake</build_type>
+    <depend>rclcpp</depend>
+    <depend>octomap</depend>
   </export>
 </package>
