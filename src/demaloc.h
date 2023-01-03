@@ -10,8 +10,18 @@ public:
 
     }
 
+    void update_map()
+    {
+
+    }
+
+    void publish_map()
+    {
+
+    }
+
 private:
-    octomap::OccupancyOcTreeBase< NODE> ocmap;
+    octomap::Octree ocmap;
 
 
 };
