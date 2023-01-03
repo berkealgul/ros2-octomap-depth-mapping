@@ -14,16 +14,25 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-
-# octomap
 find_package(octomap REQUIRED)
-include_directories(${OCTOMAP_INCLUDE_DIRS})
-# target_link_libraries(${OCTOMAP_LIBRARIES})
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
 
-add_executable(demaloc src/demaloc_node.cpp)
-ament_target_dependencies(demaloc rclcpp)
+include_directories(${OCTOMAP_INCLUDE_DIRS})
+#target_link_libraries(${OCTOMAP_LIBRARIES})
+
+#add_executable(demaloc src/demaloc_node.cpp)
+add_executable(dataset_publisher src/dataset_publisher_node.cpp)
+ament_target_dependencies(dataset_publisher
+  rclcpp
+  cv_bridge
+  OpenCV
+  
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

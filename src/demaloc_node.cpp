@@ -5,6 +5,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "opencv2/core.hpp"
 
 using namespace std::chrono_literals;
 
