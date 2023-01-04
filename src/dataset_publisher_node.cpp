@@ -33,19 +33,14 @@ private:
 
 	void read_dataset_once()
 	{
-		while(data_counter < 50)
-		{
-			std::stringstream path_stream;
-			path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
-			std::string path = path_stream.str();
-			std::cout << path << std::endl;
-			cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
-			cv::imshow("asd", mat);
-			cv::waitKey(20);
-			data_counter++;
-		}
-
-
+		std::stringstream path_stream;
+		path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
+		std::string path = path_stream.str();
+		std::cout << path << std::endl;
+		cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
+		cv::imshow("asd", mat);
+		cv::waitKey(20);
+		data_counter++;
 	}
 
 

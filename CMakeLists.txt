@@ -17,25 +17,36 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(octomap REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(octomap_msgs REQUIRED)
 
-include_directories(${OCTOMAP_INCLUDE_DIRS})
-#target_link_libraries(${OCTOMAP_LIBRARIES})
 
-#add_executable(demaloc src/demaloc_node.cpp)
 add_executable(dataset_publisher src/dataset_publisher_node.cpp)
 ament_target_dependencies(dataset_publisher
   rclcpp
   cv_bridge
+  octomap
   OpenCV
-  
+  octomap_msgs
 )
 
-install(TARGETS dataset_publisher
+add_executable(demaloc src/demaloc_node.cpp)
+ament_target_dependencies(demaloc
+  rclcpp
+  cv_bridge
+  octomap
+  OpenCV
+  octomap_msgs
+)
+
+
+install(TARGETS dataset_publisher demaloc
   DESTINATION lib/${PROJECT_NAME}
 )
+
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

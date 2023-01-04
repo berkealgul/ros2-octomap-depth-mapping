@@ -1,7 +1,10 @@
-#include "octomap/OcTree.h"
+#include <memory>
 #include <opencv2/opencv.hpp>
-#include "geometry_msgs/msg/pose.hpp"
+
+#include "octomap/OcTree.h"
 #include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+
 
 class Demaloc
 {
@@ -9,29 +12,27 @@ public:
     
     Demaloc()
     {
-
+        
+        //ocmap = std::make_shared<octomap::OcTree>(0.1);
     }
 
-private:
+    octomap::OcTree ocmap = octomap::OcTree(1);
+    //std::shared_ptr<octomap::OcTree> ocmap;
 
     int data_counter = 0;
 	std::string p = "/home/berke/Downloads/rgbd-scenes-v2_imgs/rgbd-scenes-v2/imgs/scene_01/";
+    std::string p = "/home/berke/Downloads/rgbd-scenes-v2_pc/rgbd-scenes-v2/pc/01.pose";
 
 	void read_dataset_once()
 	{
-		while(data_counter < 50)
-		{
-			std::stringstream path_stream;
-			path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
-			std::string path = path_stream.str();
-			std::cout << path << std::endl;
-			cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
-			cv::imshow("asd", mat);
-			cv::waitKey(20);
-			data_counter++;
-		}
-
-
+        std::stringstream path_stream;
+        path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
+        std::string path = path_stream.str();
+        std::cout << path << std::endl;
+        cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
+        cv::imshow("asd", mat);
+        cv::waitKey(20);
+        data_counter++;
 	}
 
     double rawDepthToMeters(int depthValue) 
@@ -47,25 +48,19 @@ private:
     {
         for(int i = 0; i < img.rows; i+=1)
         {
-            for(int j = 0; i < img.cols; i+=1)
+            for(int j = 0; j < img.cols; j+=1)
             {
                 cv::Point minLoc, maxLoc;
                 double min, raw;
-                cv::minMaxLoc(img, min, raw, minLoc, maxLoc);
+                cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
                 double depth = rawDepthToMeters(raw);
             }
         }
 
-
         octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
         octomap::point3d target(0, 0, 0);
-        ocmap.insertRay(origin, target);
+        //ocmap.insertRay(origin, target);
     }
 
-    void publish_map()
-    {
 
-    }
-
-    octomap::OcTree ocmap;
 };
