@@ -33,6 +33,9 @@ ament_target_dependencies(dataset_publisher
   
 )
 
+install(TARGETS dataset_publisher
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
