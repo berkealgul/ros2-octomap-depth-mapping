@@ -5,6 +5,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 
+#include <fstream>
 
 class Demaloc
 {
@@ -12,27 +13,45 @@ public:
     
     Demaloc()
     {
-        
+        myfile.open(p1);
         //ocmap = std::make_shared<octomap::OcTree>(0.1);
     }
 
     octomap::OcTree ocmap = octomap::OcTree(1);
     //std::shared_ptr<octomap::OcTree> ocmap;
-
+    std::ifstream myfile;
     int data_counter = 0;
 	std::string p = "/home/berke/Downloads/rgbd-scenes-v2_imgs/rgbd-scenes-v2/imgs/scene_01/";
-    std::string p = "/home/berke/Downloads/rgbd-scenes-v2_pc/rgbd-scenes-v2/pc/01.pose";
+    std::string p1 = "/home/berke/Downloads/rgbd-scenes-v2_pc/rgbd-scenes-v2/pc/01.pose";
 
 	void read_dataset_once()
 	{
         std::stringstream path_stream;
         path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
         std::string path = path_stream.str();
-        std::cout << path << std::endl;
+        
         cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
-        cv::imshow("asd", mat);
-        cv::waitKey(20);
+        // cv::imshow("asd", mat);
+        // cv::waitKey(20);
         data_counter++;
+
+        std::string line;
+        std::getline(myfile, line);
+        double x, y, z, a, b, c ,d;
+        std::istringstream iss(line);
+        // iss >> a >> b >> c >> d >> x >> y >> z;  
+
+        geometry_msgs::msg::Pose pose;
+        pose.position.x = x;
+        pose.position.y = y;
+        pose.position.z = z;
+        pose.orientation.x = a;
+        pose.orientation.y = b;
+        pose.orientation.z = c;
+        pose.orientation.w = d;
+
+        //process map
+        update_map(mat, pose);
 	}
 
     double rawDepthToMeters(int depthValue) 
