@@ -1,11 +1,13 @@
 #include <memory>
-#include <opencv2/opencv.hpp>
+#include <fstream>
 
+#include <opencv2/opencv.hpp>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "octomap/OcTree.h"
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 
-#include <fstream>
 
 class Demaloc
 {
@@ -65,6 +67,9 @@ public:
 
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
     {
+        tf2::Transform t;
+        tf2::fromMsg(pose, t);
+
         for(int i = 0; i < img.rows; i+=1)
         {
             for(int j = 0; j < img.cols; j+=1)
