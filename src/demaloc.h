@@ -1,5 +1,6 @@
 #include <memory>
 #include <fstream>
+#include <iostream> //for debug
 
 #include <opencv2/opencv.hpp>
 #include <tf2/LinearMath/Transform.h>
@@ -42,7 +43,7 @@ public:
         std::getline(myfile, line);
         double x, y, z, a, b, c ,d;
         std::istringstream iss(line);
-        // iss >> a >> b >> c >> d >> x >> y >> z;  
+        iss >> a >> b >> c >> d >> x >> y >> z;  
 
         geometry_msgs::msg::Pose pose;
         pose.position.x = x;
@@ -86,15 +87,18 @@ public:
                 cv::Point minLoc, maxLoc;
                 double min, raw;
                 //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
-                raw = mat.at<double>(i, j);
+                raw = img.at<double>(i, j);
                 double d = rawDepthToMeters(raw);
 
-                tf2::Vector3 p(i*s, j*s, s);
+                tf2::Vector3 p(i*d, j*d, d);
                 p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
                 p-=v_i;
                 p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
 
                 octomap::point3d target(p.getX(), p.getY(), p.getZ());
+
+                //std::cout << target << " " << origin << std::endl;
+                
                 ocmap.insertRay(origin, target);
             }
         }

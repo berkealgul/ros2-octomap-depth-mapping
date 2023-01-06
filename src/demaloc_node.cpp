@@ -30,6 +30,9 @@ private:
 		msg.resolution = demaloc.ocmap.getResolution();
 		octomap_msgs::fullMapToMsgData(demaloc.ocmap, map_data);
 		msg.data = map_data;
+		msg.binary = true;
+		msg.id = "OcTree";
+		msg.header.frame_id = "map";
 		
 		octomap_publisher_->publish(msg);
 	}
