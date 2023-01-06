@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "octomap/OcTree.h"
 #include "rclcpp/rclcpp.hpp"
@@ -67,8 +68,16 @@ public:
 
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
     {
-        tf2::Transform t;
+        tf2::Transform t, t_i;
         tf2::fromMsg(pose, t);
+        t_i = t.inverse();
+
+        tf2::Matrix3x3 m(524, 0, 316.8, 0, 524, 238.5, 0, 0, 1);
+        auto m_i = m.inverse();
+        auto r_i = t_i.getBasis();
+        auto v_i = t_i.getOrigin();
+
+        octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
         for(int i = 0; i < img.rows; i+=1)
         {
@@ -76,14 +85,21 @@ public:
             {
                 cv::Point minLoc, maxLoc;
                 double min, raw;
-                cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
-                double depth = rawDepthToMeters(raw);
+                //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
+                raw = mat.at<double>(i, j);
+                double d = rawDepthToMeters(raw);
+
+                tf2::Vector3 p(i*s, j*s, s);
+                p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
+                p-=v_i;
+                p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+
+                octomap::point3d target(p.getX(), p.getY(), p.getZ());
+                ocmap.insertRay(origin, target);
             }
         }
 
-        octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
-        octomap::point3d target(0, 0, 0);
-        //ocmap.insertRay(origin, target);
+
     }
 
 
