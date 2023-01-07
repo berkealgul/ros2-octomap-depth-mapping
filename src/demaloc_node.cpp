@@ -53,6 +53,8 @@ private:
 
 		pc_msg.header.frame_id = "map";
 		pc_publisher_->publish(pc_msg);
+
+		std::cout << "lol" << std::endl;
 	}
 
 	Demaloc demaloc;

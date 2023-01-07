@@ -72,7 +72,7 @@ public:
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
     {
         pc.clear();
-        
+
         tf2::Transform t, t_i;
         tf2::fromMsg(pose, t);
         t_i = t.inverse();
@@ -96,10 +96,12 @@ public:
 
                 tf2::Vector3 p(i*d, j*d, d);
                 p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-                p-=v_i;
-                p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
-
+                //p-=v_i;
+                //p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
                 octomap::point3d target(p.getX(), p.getY(), p.getZ());
+
+                cv::imshow("asd", img);
+		        cv::waitKey(20);
 
                 //std::cout << target << " " << origin << std::endl;
                 pc.push_back(target);
