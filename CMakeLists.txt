@@ -17,11 +17,12 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(octomap_msgs REQUIRED)
-
 
 add_executable(dataset_publisher src/dataset_publisher_node.cpp)
 ament_target_dependencies(dataset_publisher
@@ -30,6 +31,8 @@ ament_target_dependencies(dataset_publisher
   octomap
   OpenCV
   octomap_msgs
+  sensor_msgs
+  geometry_msgs
 )
 
 add_executable(demaloc src/demaloc_node.cpp)
@@ -39,6 +42,8 @@ ament_target_dependencies(demaloc
   octomap
   OpenCV
   octomap_msgs
+  sensor_msgs
+  geometry_msgs
 )
 
 

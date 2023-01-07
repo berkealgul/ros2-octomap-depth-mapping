@@ -7,6 +7,7 @@
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "octomap/OcTree.h"
+#include "octomap/Pointcloud.h"
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 
@@ -21,7 +22,8 @@ public:
         //ocmap = std::make_shared<octomap::OcTree>(0.1);
     }
 
-    octomap::OcTree ocmap = octomap::OcTree(1);
+    octomap::Pointcloud pc;
+    octomap::OcTree ocmap = octomap::OcTree(0.05);
     //std::shared_ptr<octomap::OcTree> ocmap;
     std::ifstream myfile;
     int data_counter = 0;
@@ -69,6 +71,8 @@ public:
 
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
     {
+        pc.clear();
+        
         tf2::Transform t, t_i;
         tf2::fromMsg(pose, t);
         t_i = t.inverse();
@@ -98,12 +102,12 @@ public:
                 octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
                 //std::cout << target << " " << origin << std::endl;
-                
-                ocmap.insertRay(origin, target);
+                pc.push_back(target);
+                //ocmap.insertRay(origin, target);
             }
         }
 
-
+        ocmap.insertPointCloud(pc, origin);
     }
 
 
