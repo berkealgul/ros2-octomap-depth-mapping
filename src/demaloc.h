@@ -37,8 +37,6 @@ public:
         std::string path = path_stream.str();
         
         cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
-        // cv::imshow("asd", mat);
-        // cv::waitKey(20);
         data_counter++;
 
         std::string line;
@@ -60,13 +58,14 @@ public:
         update_map(mat, pose);
 	}
 
-    double rawDepthToMeters(int depthValue) 
+    double rawDepthToMeters(ushort raw_depth) 
     {
-        if (depthValue < 2047) 
+        if(raw_depth > 6408)
         {
-            return (1.0 / ((double)(depthValue) * -0.0030711016 + 3.3309495161));
-        }
-        return 0.0f;
+            return (double)(((2.5-0.9)/(15800.0-6408.0))*raw_depth);
+        }        
+
+        return 0;
     }
 
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
@@ -89,26 +88,28 @@ public:
             for(int j = 0; j < img.cols; j+=1)
             {
                 cv::Point minLoc, maxLoc;
-                double min, raw;
+                double min, raw = 0;
                 //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
-                raw = img.at<double>(i, j);
-                double d = rawDepthToMeters(raw);
+                //raw = (double)img.at<uchar>(i, j);
+                ushort r = img.at<ushort>(i, j);
+                double d = rawDepthToMeters(r);
+                //std::cout << r << " ";
 
                 tf2::Vector3 p(i*d, j*d, d);
                 p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-                //p-=v_i;
+                //p+=v_i;
                 //p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
                 octomap::point3d target(p.getX(), p.getY(), p.getZ());
-
-                cv::imshow("asd", img);
-		        cv::waitKey(20);
 
                 //std::cout << target << " " << origin << std::endl;
                 pc.push_back(target);
                 //ocmap.insertRay(origin, target);
             }
         }
-
+        // cv::imshow("asd", img);
+		// cv::waitKey(20);
+        // std::cout << "img ends" << std::endl;
+        // std::cout << img << "--------" << std::endl;
         ocmap.insertPointCloud(pc, origin);
     }
 
