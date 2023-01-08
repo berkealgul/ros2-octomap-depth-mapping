@@ -7,8 +7,13 @@
 #include "rclcpp/rclcpp.hpp"
 #include "octomap_msgs/conversions.h"
 #include "octomap_msgs/msg/octomap.hpp"
-#include "sensor_msgs/msg/point_cloud.hpp"
 #include "geometry_msgs/msg/point32.hpp"
+
+// temporary
+#include "sensor_msgs/msg/point_cloud.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/point_cloud_conversion.hpp" 
+
 
 using namespace std::chrono_literals;
 
@@ -18,7 +23,7 @@ public:
 	DemalocNode(): Node("demaloc"), count_(0)
 	{
 		octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", 10);
-		pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud>("/pc", 10);
+		pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", 10);
 		timer_ = this->create_wall_timer(500ms, std::bind(&DemalocNode::timer_callback, this));
 	}	
 
@@ -52,13 +57,17 @@ private:
 		}
 
 		pc_msg.header.frame_id = "map";
-		pc_publisher_->publish(pc_msg);
+		
+		sensor_msgs::msg::PointCloud2 pc_msg2;
+		sensor_msgs::convertPointCloudToPointCloud2(pc_msg, pc_msg2);
+
+		pc_publisher_->publish(pc_msg2);
 	}
 
 	Demaloc demaloc;
 	rclcpp::TimerBase::SharedPtr timer_;
 	rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
-	rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pc_publisher_;
+	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
 	size_t count_;
 };
 

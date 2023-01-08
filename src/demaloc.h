@@ -103,6 +103,7 @@ public:
 
                 //std::cout << target << " " << origin << std::endl;
                 pc.push_back(target);
+                //ocmap.updateNode(target, true);
                 //ocmap.insertRay(origin, target);
             }
         }
@@ -110,7 +111,7 @@ public:
 		// cv::waitKey(20);
         // std::cout << "img ends" << std::endl;
         // std::cout << img << "--------" << std::endl;
-        ocmap.insertPointCloud(pc, origin);
+        //ocmap.insertPointCloud(pc, origin);
     }
 
 
