@@ -114,5 +114,11 @@ public:
         //ocmap.insertPointCloud(pc, origin);
     }
 
+    void insert_ray(octomap::point3d& origin, octomap::point3d& target)
+    {
+
+        
+
+    }
 
 };
