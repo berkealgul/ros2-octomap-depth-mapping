@@ -12,6 +12,9 @@
 #include "geometry_msgs/msg/pose.hpp"
 
 
+using namespace octomap;
+
+
 class Demaloc
 {
 public:
@@ -20,7 +23,23 @@ public:
     {
         myfile.open(p1);
         //ocmap = std::make_shared<octomap::OcTree>(0.1);
+        double minX, minY, minZ;
+        double maxX, maxY, maxZ;
+        ocmap.getMetricMin(minX, minY, minZ);
+        ocmap.getMetricMax(maxX, maxY, maxZ);
+
+        m_updateBBXMin[0] = ocmap.coordToKey(minX);
+        m_updateBBXMin[1] = ocmap.coordToKey(minY);
+        m_updateBBXMin[2] = ocmap.coordToKey(minZ);
+
+        m_updateBBXMax[0] = ocmap.coordToKey(maxX);
+        m_updateBBXMax[1] = ocmap.coordToKey(maxY);
+        m_updateBBXMax[2] = ocmap.coordToKey(maxZ);
     }
+
+    octomap::KeyRay keyray;
+    octomap::OcTreeKey m_updateBBXMin;
+    octomap::OcTreeKey m_updateBBXMax;
 
     octomap::Pointcloud pc;
     octomap::OcTree ocmap = octomap::OcTree(0.05);
@@ -75,7 +94,7 @@ public:
         tf2::Transform t, t_i;
         tf2::fromMsg(pose, t);
         t_i = t.inverse();
-
+        
         tf2::Matrix3x3 m(524, 0, 316.8, 0, 524, 238.5, 0, 0, 1);
         auto m_i = m.inverse();
         auto r_i = t_i.getBasis();
@@ -105,6 +124,7 @@ public:
                 pc.push_back(target);
                 //ocmap.updateNode(target, true);
                 //ocmap.insertRay(origin, target);
+                insert_ray(origin, target);
             }
         }
         // cv::imshow("asd", img);
@@ -114,11 +134,59 @@ public:
         //ocmap.insertPointCloud(pc, origin);
     }
 
-    void insert_ray(octomap::point3d& origin, octomap::point3d& target)
+    void insert_ray(point3d& origin, point3d& target)
     {
+        if (!ocmap.coordToKeyChecked(origin, m_updateBBXMin) 
+        || !ocmap.coordToKeyChecked(origin, m_updateBBXMax)) 
+        {
+            std::cout << "Could not generate Key for origin" << std::endl;
+        }
 
-        
+        KeySet free_cells, occupied_cells;
+        if (ocmap.computeRayKeys(origin, target, keyray)) 
+        {
+            free_cells.insert(keyray.begin(), keyray.end());
+        }
+ 
+        OcTreeKey key;
+        if (ocmap.coordToKeyChecked(target, key)) 
+        {
+            occupied_cells.insert(key);
+            updateMinKey(key, m_updateBBXMin);
+            updateMaxKey(key, m_updateBBXMax);
+        } 
+        // else 
+        // {
+        //     RCLCPP_ERROR(this->get_logger(),
+        //                     "Could not generate Key for endpoint");
+        // }
 
+        for(auto it = free_cells.begin(), end=free_cells.end(); it!= end; ++it)
+        {
+            if (occupied_cells.find(*it) == occupied_cells.end())
+            {
+                ocmap.updateNode(*it, false);
+            }
+        }
+
+        for (auto& key : occupied_cells) 
+        {
+            ocmap.updateNode(key, true);
+        }
     }
+
+    inline static void updateMinKey(const octomap::OcTreeKey& in,
+                                        octomap::OcTreeKey& min) {
+            for (unsigned i = 0; i < 3; ++i) {
+                min[i] = std::min(in[i], min[i]);
+            }
+        };
+
+    inline static void updateMaxKey(const octomap::OcTreeKey& in,
+                                    octomap::OcTreeKey& max) {
+        for (unsigned i = 0; i < 3; ++i) {
+            max[i] = std::max(in[i], max[i]);
+        }
+    };
 
 };
