@@ -124,14 +124,8 @@ public:
                 pc.push_back(target);
                 //ocmap.updateNode(target, true);
                 ocmap.insertRay(origin, target);
-                //insert_ray(origin, target);
             }
-        }
-        // cv::imshow("asd", img);
-		// cv::waitKey(20);
-        // std::cout << "img ends" << std::endl;
-        // std::cout << img << "--------" << std::endl;
-        //ocmap.insertPointCloud(pc, origin);
+        };
     }
 
     // void insert_ray(point3d& origin, point3d& target)

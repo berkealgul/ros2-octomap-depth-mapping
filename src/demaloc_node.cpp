@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "demaloc.h"
+#include "demaloc.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "octomap_msgs/conversions.h"
 #include "octomap_msgs/msg/octomap.hpp"
