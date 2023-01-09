@@ -116,15 +116,15 @@ public:
 
                 tf2::Vector3 p(i*d, j*d, d);
                 p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-                //p+=v_i;
-                //p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+                p+=v_i;
+                p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
                 octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
                 //std::cout << target << " " << origin << std::endl;
                 pc.push_back(target);
                 //ocmap.updateNode(target, true);
-                //ocmap.insertRay(origin, target);
-                insert_ray(origin, target);
+                ocmap.insertRay(origin, target);
+                //insert_ray(origin, target);
             }
         }
         // cv::imshow("asd", img);
@@ -134,59 +134,59 @@ public:
         //ocmap.insertPointCloud(pc, origin);
     }
 
-    void insert_ray(point3d& origin, point3d& target)
-    {
-        if (!ocmap.coordToKeyChecked(origin, m_updateBBXMin) 
-        || !ocmap.coordToKeyChecked(origin, m_updateBBXMax)) 
-        {
-            std::cout << "Could not generate Key for origin" << std::endl;
-        }
+    // void insert_ray(point3d& origin, point3d& target)
+    // {
+    //     if (!ocmap.coordToKeyChecked(origin, m_updateBBXMin) 
+    //     || !ocmap.coordToKeyChecked(origin, m_updateBBXMax)) 
+    //     {
+    //         std::cout << "Could not generate Key for origin" << std::endl;
+    //     }
 
-        KeySet free_cells, occupied_cells;
-        if (ocmap.computeRayKeys(origin, target, keyray)) 
-        {
-            free_cells.insert(keyray.begin(), keyray.end());
-        }
+    //     KeySet free_cells, occupied_cells;
+    //     if (ocmap.computeRayKeys(origin, target, keyray)) 
+    //     {
+    //         free_cells.insert(keyray.begin(), keyray.end());
+    //     }
  
-        OcTreeKey key;
-        if (ocmap.coordToKeyChecked(target, key)) 
-        {
-            occupied_cells.insert(key);
-            updateMinKey(key, m_updateBBXMin);
-            updateMaxKey(key, m_updateBBXMax);
-        } 
-        // else 
-        // {
-        //     RCLCPP_ERROR(this->get_logger(),
-        //                     "Could not generate Key for endpoint");
-        // }
+    //     OcTreeKey key;
+    //     if (ocmap.coordToKeyChecked(target, key)) 
+    //     {
+    //         occupied_cells.insert(key);
+    //         updateMinKey(key, m_updateBBXMin);
+    //         updateMaxKey(key, m_updateBBXMax);
+    //     } 
+    //     // else 
+    //     // {
+    //     //     RCLCPP_ERROR(this->get_logger(),
+    //     //                     "Could not generate Key for endpoint");
+    //     // }
 
-        for(auto it = free_cells.begin(), end=free_cells.end(); it!= end; ++it)
-        {
-            if (occupied_cells.find(*it) == occupied_cells.end())
-            {
-                ocmap.updateNode(*it, false);
-            }
-        }
+    //     for(auto it = free_cells.begin(), end=free_cells.end(); it!= end; ++it)
+    //     {
+    //         if (occupied_cells.find(*it) == occupied_cells.end())
+    //         {
+    //             ocmap.updateNode(*it, false);
+    //         }
+    //     }
 
-        for (auto& key : occupied_cells) 
-        {
-            ocmap.updateNode(key, true);
-        }
-    }
+    //     for (auto& key : occupied_cells) 
+    //     {
+    //         ocmap.updateNode(key, true);
+    //     }
+    // }
 
-    inline static void updateMinKey(const octomap::OcTreeKey& in,
-                                        octomap::OcTreeKey& min) {
-            for (unsigned i = 0; i < 3; ++i) {
-                min[i] = std::min(in[i], min[i]);
-            }
-        };
+    // inline static void updateMinKey(const octomap::OcTreeKey& in,
+    //                                     octomap::OcTreeKey& min) {
+    //         for (unsigned i = 0; i < 3; ++i) {
+    //             min[i] = std::min(in[i], min[i]);
+    //         }
+    //     };
 
-    inline static void updateMaxKey(const octomap::OcTreeKey& in,
-                                    octomap::OcTreeKey& max) {
-        for (unsigned i = 0; i < 3; ++i) {
-            max[i] = std::max(in[i], max[i]);
-        }
-    };
+    // inline static void updateMaxKey(const octomap::OcTreeKey& in,
+    //                                 octomap::OcTreeKey& max) {
+    //     for (unsigned i = 0; i < 3; ++i) {
+    //         max[i] = std::max(in[i], max[i]);
+    //     }
+    // };
 
 };

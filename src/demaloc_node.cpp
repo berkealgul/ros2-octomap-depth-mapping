@@ -35,15 +35,11 @@ private:
 		octomap_msgs::msg::Octomap msg;
 		std::vector<int8_t, std::allocator<int8_t>> map_data;
 
-		msg.resolution = demaloc.ocmap.getResolution();
-		octomap_msgs::fullMapToMsgData(demaloc.ocmap, map_data);
-		msg.data = map_data;
-		msg.binary = true;
+		octomap_msgs::fullMapToMsg(demaloc.ocmap, msg);
 		msg.id = "OcTree";
 		msg.header.frame_id = "map";
 		
 		octomap_publisher_->publish(msg);
-
 
 		sensor_msgs::msg::PointCloud pc_msg;
 
