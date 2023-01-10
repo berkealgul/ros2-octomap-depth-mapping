@@ -14,7 +14,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 
-
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -24,8 +23,12 @@ find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(octomap_msgs REQUIRED)
 
-add_executable(dataset_publisher src/dataset_publisher_node.cpp)
-ament_target_dependencies(dataset_publisher
+include_directories(include)
+
+add_library(octomap_demap
+  src/demaloc.cpp
+)
+ament_target_dependencies(octomap_demap
   rclcpp
   cv_bridge
   octomap
@@ -33,6 +36,22 @@ ament_target_dependencies(dataset_publisher
   octomap_msgs
   sensor_msgs
   geometry_msgs
+)
+
+ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  TARGETS octomap_demap
+  EXPORT octomap_demap
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
 )
 
 add_executable(demaloc src/demaloc_node.cpp)
@@ -46,19 +65,12 @@ ament_target_dependencies(demaloc
   geometry_msgs
 )
 
+target_link_libraries(demaloc octomap_demap)
 
-install(TARGETS dataset_publisher demaloc
+
+install(TARGETS demaloc
   DESTINATION lib/${PROJECT_NAME}
 )
 
-
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
 
 ament_package()
