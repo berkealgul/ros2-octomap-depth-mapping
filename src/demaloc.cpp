@@ -1,4 +1,9 @@
 #include "demaloc.hpp"
+#include <functional>
+
+
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace octomap_depth_mapping
 {
@@ -12,7 +17,19 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 	timer_ = this->create_wall_timer(500ms, std::bind(&OctomapDemap::timer_callback, this));
     myfile.open(p1);
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
+
+    depth_sub_.subscribe(this, "depth_image");
+    odom_sub_.subscribe(this, "odom");
+
+    message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry> 
+        sync_(depth_sub_, odom_sub_, 10);
+    sync_.registerCallback(std::bind(&OctomapDemap::demap_callback, this, _1, _2));
     
+}
+
+void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::SharedPtr depth_msg, const nav_msgs::msg::Odometry::SharedPtr odom_msg)
+{
+    RCLCPP_INFO(this->get_logger(), "callback");
 }
 
 void OctomapDemap::timer_callback()
