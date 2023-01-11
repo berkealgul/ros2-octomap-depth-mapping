@@ -1,13 +1,52 @@
 #include "demaloc.hpp"
 
-
-Demaloc::Demaloc()
+namespace octomap_depth_mapping
 {
+
+OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string node_name): 
+    Node(node_name, options)
+{
+    count_ = 0;
+    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", 10);
+	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", 10);
+	timer_ = this->create_wall_timer(500ms, std::bind(&OctomapDemap::timer_callback, this));
     myfile.open(p1);
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
+    
 }
 
-void Demaloc::read_dataset_once()
+void OctomapDemap::timer_callback()
+{
+    read_dataset_once();
+
+    octomap_msgs::msg::Octomap msg;
+
+    octomap_msgs::fullMapToMsg(ocmap, msg);
+    msg.id = "OcTree";
+    msg.header.frame_id = "map";
+    
+    octomap_publisher_->publish(msg);
+
+    sensor_msgs::msg::PointCloud pc_msg;
+
+    for(auto& p : pc)
+    {
+        geometry_msgs::msg::Point32 pp;
+        pp.x = p.x();
+        pp.y = p.y();
+        pp.z = p.z();
+        pc_msg.points.push_back(pp);
+    }
+
+    pc_msg.header.frame_id = "map";
+    
+    sensor_msgs::msg::PointCloud2 pc_msg2;
+    sensor_msgs::convertPointCloudToPointCloud2(pc_msg, pc_msg2);
+
+    pc_publisher_->publish(pc_msg2);
+}
+
+void OctomapDemap::read_dataset_once()
 {
     std::stringstream path_stream;
     path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
@@ -35,7 +74,7 @@ void Demaloc::read_dataset_once()
     update_map(mat, pose);
 }
 
-double Demaloc::rawDepthToMeters(ushort raw_depth) 
+double OctomapDemap::rawDepthToMeters(ushort raw_depth) 
 {
     if(raw_depth > 6408)
     {
@@ -45,7 +84,7 @@ double Demaloc::rawDepthToMeters(ushort raw_depth)
     return 0;
 }
 
-void Demaloc::update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
+void OctomapDemap::update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
 {
     pc.clear();
 
@@ -85,3 +124,7 @@ void Demaloc::update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
         }
     }
 }
+
+} // octomap_depth_mapping
+
+RCLCPP_COMPONENTS_REGISTER_NODE(octomap_depth_mapping::OctomapDemap)
