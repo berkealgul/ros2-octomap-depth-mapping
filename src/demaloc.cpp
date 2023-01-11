@@ -1,9 +1,4 @@
 #include "demaloc.hpp"
-#include <functional>
-
-
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 namespace octomap_depth_mapping
 {
@@ -18,18 +13,25 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     myfile.open(p1);
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    depth_sub_.subscribe(this, "depth_image");
-    odom_sub_.subscribe(this, "odom");
+    rclcpp::QoS qos(rclcpp::KeepLast(3));
+    auto rmw_qos_profile = qos.get_rmw_qos_profile();
+    depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
+    odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
+    sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
+    sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
-    message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry> 
-        sync_(depth_sub_, odom_sub_, 10);
-    sync_.registerCallback(std::bind(&OctomapDemap::demap_callback, this, _1, _2));
-    
+    RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::SharedPtr depth_msg, const nav_msgs::msg::Odometry::SharedPtr odom_msg)
+void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const
 {
     RCLCPP_INFO(this->get_logger(), "callback");
+}
+
+void OctomapDemap::odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const
+{
+    std::cout << "lol";
+    RCLCPP_INFO(this->get_logger(), "odom callback");
 }
 
 void OctomapDemap::timer_callback()

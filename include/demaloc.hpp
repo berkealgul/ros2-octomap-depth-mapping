@@ -33,7 +33,7 @@
 #include "geometry_msgs/msg/point32.hpp"
 
 using namespace std::chrono_literals;
-
+namespace ph = std::placeholders;
 
 namespace octomap_depth_mapping
 {
@@ -47,6 +47,7 @@ public:
 
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
+    std::shared_ptr<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
@@ -65,7 +66,8 @@ public:
     void read_dataset_once();
     void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose);
     void timer_callback();
-    void demap_callback()
+    void odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const;
+    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const;
 };
 
 } // octomap_depth_mapping
