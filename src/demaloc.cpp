@@ -1,4 +1,5 @@
 #include "demaloc.hpp"
+#include <cv_bridge/cv_bridge.h>
 
 namespace octomap_depth_mapping
 {
@@ -6,11 +7,8 @@ namespace octomap_depth_mapping
 OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string node_name): 
     Node(node_name, options)
 {
-    count_ = 0;
     octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", 10);
 	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", 10);
-	timer_ = this->create_wall_timer(500ms, std::bind(&OctomapDemap::timer_callback, this));
-    myfile.open(p1);
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -23,21 +21,16 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const
+void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
+    auto cv_ptr = cv_bridge::toCvCopy(depth_msg, "mono16");
+    update_map(cv_ptr->image, odom_msg->pose.pose);
+    publish_all();
     RCLCPP_INFO(this->get_logger(), "callback");
 }
 
-void OctomapDemap::odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const
+void OctomapDemap::publish_all()
 {
-    std::cout << "lol";
-    RCLCPP_INFO(this->get_logger(), "odom callback");
-}
-
-void OctomapDemap::timer_callback()
-{
-    read_dataset_once();
-
     octomap_msgs::msg::Octomap msg;
 
     octomap_msgs::fullMapToMsg(ocmap, msg);
@@ -65,34 +58,6 @@ void OctomapDemap::timer_callback()
     pc_publisher_->publish(pc_msg2);
 }
 
-void OctomapDemap::read_dataset_once()
-{
-    std::stringstream path_stream;
-    path_stream << p << std::setw(5) << std::setfill('0') << data_counter << "-depth.png";
-    std::string path = path_stream.str();
-    
-    cv::Mat mat = cv::imread(path, cv::IMREAD_ANYDEPTH);
-    data_counter++;
-
-    std::string line;
-    std::getline(myfile, line);
-    double x, y, z, a, b, c ,d;
-    std::istringstream iss(line);
-    iss >> a >> b >> c >> d >> x >> y >> z;  
-
-    geometry_msgs::msg::Pose pose;
-    pose.position.x = x;
-    pose.position.y = y;
-    pose.position.z = z;
-    pose.orientation.x = a;
-    pose.orientation.y = b;
-    pose.orientation.z = c;
-    pose.orientation.w = d;
-
-    //process map
-    update_map(mat, pose);
-}
-
 double OctomapDemap::rawDepthToMeters(ushort raw_depth) 
 {
     if(raw_depth > 6408)
@@ -103,7 +68,7 @@ double OctomapDemap::rawDepthToMeters(ushort raw_depth)
     return 0;
 }
 
-void OctomapDemap::update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose)
+void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
     pc.clear();
 

@@ -52,22 +52,14 @@ public:
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
 
-    rclcpp::TimerBase::SharedPtr timer_;
-	size_t count_;
     octomap::Pointcloud pc;
     octomap::OcTree ocmap = octomap::OcTree(0.05);
     //std::shared_ptr<octomap::OcTree> ocmap;
-    std::ifstream myfile;
-    int data_counter = 0;
-	std::string p = "/home/berke/Downloads/rgbd-scenes-v2_imgs/rgbd-scenes-v2/imgs/scene_01/";
-    std::string p1 = "/home/berke/Downloads/rgbd-scenes-v2_pc/rgbd-scenes-v2/pc/01.pose";
 
     double rawDepthToMeters(ushort raw_depth);
-    void read_dataset_once();
-    void update_map(cv::Mat& img, geometry_msgs::msg::Pose& pose);
-    void timer_callback();
-    void odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const;
-    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg) const;
+    void update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose);
+    void publish_all();
+    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg);
 };
 
 } // octomap_depth_mapping
