@@ -1,3 +1,4 @@
+#pragma once
 #ifndef OCTOMAP_DEPTH_MAPPING_HPP
 #define OCTOMAP_DEPTH_MAPPING_HPP
 
