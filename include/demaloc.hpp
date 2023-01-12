@@ -35,19 +35,18 @@
 using namespace std::chrono_literals;
 namespace ph = std::placeholders;
 
+
 namespace octomap_depth_mapping
 {
 
 class OctomapDemap : public rclcpp::Node
 {
-public:
-    
-    explicit OctomapDemap(const rclcpp::NodeOptions&, const std::string = "octomap_depth_mapping");
-
+protected:
 
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
-    std::shared_ptr<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
+    std::shared_ptr<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, 
+        nav_msgs::msg::Odometry>> sync_;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
@@ -56,13 +55,18 @@ public:
     octomap::OcTree ocmap = octomap::OcTree(0.05);
     //std::shared_ptr<octomap::OcTree> ocmap;
 
-    double rawDepthToMeters(ushort raw_depth);
-    void update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose);
+    double rawDepthToMeters(ushort);
+    void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
     void publish_all();
-    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg);
+    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
+        const nav_msgs::msg::Odometry::ConstSharedPtr&);
+
+public:
+
+    explicit OctomapDemap(const rclcpp::NodeOptions&, const std::string = "octomap_depth_mapping");
+
 };
 
 } // octomap_depth_mapping
-
 
 #endif // OCTOMAP_DEPTH_MAPPING_HPP
