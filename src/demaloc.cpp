@@ -8,23 +8,31 @@ namespace octomap_depth_mapping
 OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string node_name): 
     Node(node_name, options)
 {
-    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", 10);
-	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", 10);
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    rclcpp::QoS qos(rclcpp::KeepLast(3));
-    auto rmw_qos_profile = qos.get_rmw_qos_profile();
-    depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
-    odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
-    sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
-    sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
-
-
+    init();
 
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-void OctomapDemap::OctomapDemap
+void OctomapDemap::init()
+{
+    rclcpp::QoS qos(rclcpp::KeepLast(3));
+
+    // pubs
+    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", qos);
+	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
+
+    auto rmw_qos_profile = qos.get_rmw_qos_profile();
+    
+    // subs
+    depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
+    odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
+
+    // bind subs with ugly way
+    sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
+    sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
+}
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
