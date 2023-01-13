@@ -33,7 +33,6 @@
 #include "sensor_msgs/point_cloud_conversion.hpp" 
 #include "geometry_msgs/msg/point32.hpp"
 
-using namespace std::chrono_literals;
 namespace ph = std::placeholders;
 
 
@@ -59,6 +58,7 @@ protected:
     double rawDepthToMeters(ushort);
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
     void publish_all();
+    void init();
     void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
         const nav_msgs::msg::Odometry::ConstSharedPtr&);
 
