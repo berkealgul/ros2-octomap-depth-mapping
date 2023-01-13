@@ -1,6 +1,7 @@
 #include "demaloc.hpp"
 #include <cv_bridge/cv_bridge.h>
 
+
 namespace octomap_depth_mapping
 {
 
@@ -18,8 +19,12 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
+
+
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
+
+void OctomapDemap::OctomapDemap
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
