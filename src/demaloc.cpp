@@ -93,6 +93,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     auto m_i = m.inverse();
     auto r_i = t_i.getBasis();
     auto v_i = t_i.getOrigin();
+    auto v = t.getOrigin();
 
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
@@ -110,7 +111,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
             tf2::Vector3 p(i*d, j*d, d);
             p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-            p+=v_i;
+            p+=v;
             p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
             octomap::point3d target(p.getX(), p.getY(), p.getZ());
 

@@ -24,6 +24,7 @@ find_package(cv_bridge REQUIRED)
 find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(octomap_msgs REQUIRED)
+find_package(OpenMP REQUIRED)
 
 include_directories(include)
 
