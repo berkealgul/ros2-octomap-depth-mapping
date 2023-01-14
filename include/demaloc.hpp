@@ -30,6 +30,7 @@
 
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 // temporary
@@ -62,6 +63,7 @@ protected:
     octomap::OcTree ocmap = octomap::OcTree(0.05);
     //std::shared_ptr<octomap::OcTree> ocmap;
 
+    tf2::Quaternion frame_to_cam_basis;
 
     double rawDepthToMeters(ushort);
 

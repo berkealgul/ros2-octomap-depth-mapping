@@ -1,4 +1,5 @@
 #include "demaloc.hpp"
+#include <math.h>
 #include <cv_bridge/cv_bridge.h>
 
 
@@ -10,7 +11,9 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 {
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    init();
+    frame_to_cam_basis.setRPY(0, 0, 0);
+
+    init(); 
 
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
@@ -24,7 +27,6 @@ void OctomapDemap::init()
 	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
 
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
-    
     // subs
     depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
     odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
@@ -87,6 +89,9 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
     tf2::Transform t, t_i;
     tf2::fromMsg(pose, t);
+
+    t.setRotation(frame_to_cam_basis * t.getRotation());
+
     t_i = t.inverse();
     
     tf2::Matrix3x3 m(524, 0, 316.8, 0, 524, 238.5, 0, 0, 1);
@@ -101,18 +106,26 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     {
         for(int j = 0; j < img.cols; j+=1)
         {
-            cv::Point minLoc, maxLoc;
-            double min, raw = 0;
+            //cv::Point minLoc, maxLoc;
+            //double min, raw = 0;
             //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
-            //raw = (double)img.at<uchar>(i, j);
             ushort r = img.at<ushort>(i, j);
             double d = rawDepthToMeters(r);
             //std::cout << r << " ";
 
             tf2::Vector3 p(i*d, j*d, d);
             p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-            p+=v;
-            p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+            // p+=v;
+            // p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+            p = t(p);
+
+            // Pw = R*(Pı * M-1) + T
+            // 2d to 3d Tx-Ty are transistiob
+            // ray.x = (uv_rect.x - cx() - Tx()) / fx();
+            // ray.y = (uv_rect.y - cy() - Ty()) / fy();
+            // ray.z = 1.0;
+
+            // https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec#:~:text=The%20extrinsic%20matrix%20is%20a,to%20the%20pixel%20coordinate%20system.
             octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
             //std::cout << target << " " << origin << std::endl;
