@@ -2,14 +2,9 @@
 #ifndef OCTOMAP_DEPTH_MAPPING_HPP
 #define OCTOMAP_DEPTH_MAPPING_HPP
 
-#include <memory>
-#include <fstream>
-#include <iostream> //for debug
-
 #include <chrono>
 #include <functional>
 #include <memory>
-#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include <rclcpp_components/register_node_macro.hpp>

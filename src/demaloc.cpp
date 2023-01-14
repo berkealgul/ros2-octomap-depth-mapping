@@ -11,7 +11,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 {
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    frame_to_cam_basis.setRPY(0, 0, 0);
+    frame_to_cam_basis.setRPY(0, M_PI_2, M_PI); // 90 degrees around X axis
 
     init(); 
 
@@ -128,7 +128,6 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             // https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec#:~:text=The%20extrinsic%20matrix%20is%20a,to%20the%20pixel%20coordinate%20system.
             octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
-            //std::cout << target << " " << origin << std::endl;
             pc.push_back(target);
             //ocmap.updateNode(target, true);
             ocmap.insertRay(origin, target);
