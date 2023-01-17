@@ -64,4 +64,9 @@ rclcpp_components_register_node(octomap_demap
 install(TARGETS demaloc
   DESTINATION lib/${PROJECT_NAME})
 
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 ament_package()

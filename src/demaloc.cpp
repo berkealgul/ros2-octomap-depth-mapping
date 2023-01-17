@@ -1,47 +1,61 @@
 #include "demaloc.hpp"
-#include <math.h>
+#include "depth_conversions.hpp"
 #include <cv_bridge/cv_bridge.h>
+#include <math.h>
 
 
 namespace octomap_depth_mapping
 {
 
 OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string node_name): 
-    Node(node_name, options)
+    Node(node_name, options),
+    fx(524),
+    fy(524),
+    cx(316.8),
+    cy(238.5),
+    resolution(0.05),
+    encoding("mono16"),
+    frame_id("map")
 {
+    fx = this->declare_parameter("camera_model/fx", fx);
+    fy = this->declare_parameter("camera_model/fy", fy);
+    cx = this->declare_parameter("camera_model/cx", cx);
+    cy = this->declare_parameter("camera_model/cy", cy);
+    resolution = this->declare_parameter("resolution", resolution);
+    encoding = this->declare_parameter("encoding", encoding);
+    frame_id = this->declare_parameter("frame_id", frame_id);
+
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    frame_to_cam_basis.setRPY(0, M_PI_2, M_PI); // 90 degrees around X axis
+    frame_to_cam_basis.setRPY(M_PI_2, 0, -M_PI_2); // 90 degrees around X axis
 
-    init(); 
 
-    RCLCPP_INFO(this->get_logger(), "Setup is done");
-}
-
-void OctomapDemap::init()
-{
     rclcpp::QoS qos(rclcpp::KeepLast(3));
 
     // pubs
-    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", qos);
+    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("map_out", qos);
 	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
 
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
     // subs
-    depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
-    odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
+    depth_sub_.subscribe(this, "image_in", rmw_qos_profile);
+    odom_sub_.subscribe(this, "odom_in", rmw_qos_profile);
 
     // bind subs with ugly way
     sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
+
+
+    print_params();
+    RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
-    auto cv_ptr = cv_bridge::toCvCopy(depth_msg, "mono16");
+    RCLCPP_INFO(this->get_logger(), "callback");
+    auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
     update_map(cv_ptr->image, odom_msg->pose.pose);
     publish_all();
-    RCLCPP_INFO(this->get_logger(), "callback");
 }
 
 void OctomapDemap::publish_all()
@@ -73,32 +87,14 @@ void OctomapDemap::publish_all()
     pc_publisher_->publish(pc_msg2);
 }
 
-double OctomapDemap::rawDepthToMeters(ushort raw_depth) 
-{
-    if(raw_depth > 6408)
-    {
-        return (double)(((2.5-0.9)/(15800.0-6408.0))*raw_depth);
-    }        
-
-    return 0;
-}
-
 void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
     pc.clear();
 
-    tf2::Transform t, t_i;
+    tf2::Transform t;
     tf2::fromMsg(pose, t);
 
     t.setRotation(frame_to_cam_basis * t.getRotation());
-
-    t_i = t.inverse();
-    
-    tf2::Matrix3x3 m(524, 0, 316.8, 0, 524, 238.5, 0, 0, 1);
-    auto m_i = m.inverse();
-    auto r_i = t_i.getBasis();
-    auto v_i = t_i.getOrigin();
-    auto v = t.getOrigin();
 
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
@@ -110,13 +106,14 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             //double min, raw = 0;
             //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
             ushort r = img.at<ushort>(i, j);
-            double d = rawDepthToMeters(r);
+            double d = depth_to_meters(r);
             //std::cout << r << " ";
+            //tf2::Vector3 p(i*d, j*d, d);
 
-            tf2::Vector3 p(i*d, j*d, d);
-            p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-            // p+=v;
-            // p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+            tf2::Vector3 p;
+            p.setX((j*d - cx) / fx);
+            p.setY((i*d - cy) / fy);
+            p.setZ(d);
             p = t(p);
 
             // Pw = R*(Pı * M-1) + T
@@ -134,6 +131,23 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
         }
     }
 }
+
+void OctomapDemap::print_params()
+{
+    RCLCPP_INFO(this->get_logger(), "--- Launch Parameters ---");
+    RCLCPP_INFO_STREAM(this->get_logger(), "fx : " << fx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
+    RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
+    RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
+    RCLCPP_INFO_STREAM(this->get_logger(), "input_odom_topic : " << "odom_in");
+    RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
+    RCLCPP_INFO(this->get_logger(), "-------------------------");
+}   
+
 
 } // octomap_depth_mapping
 
