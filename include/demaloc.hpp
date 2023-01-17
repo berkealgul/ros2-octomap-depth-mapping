@@ -5,6 +5,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include <rclcpp_components/register_node_macro.hpp>
@@ -48,6 +49,9 @@ protected:
     double fy;
     double cx;
     double cy;
+    double resolution;
+    std::string encoding;
+    std::string frame_id;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
@@ -56,8 +60,7 @@ protected:
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
 
     std::shared_ptr<message_filters::TimeSynchronizer
-    <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
-
+        <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
 
     octomap::Pointcloud pc;
     octomap::OcTree ocmap = octomap::OcTree(0.05);
@@ -69,8 +72,6 @@ protected:
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 
     void publish_all();
-
-    void init();
 
     void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
         const nav_msgs::msg::Odometry::ConstSharedPtr&);

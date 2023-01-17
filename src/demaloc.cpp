@@ -1,7 +1,7 @@
 #include "demaloc.hpp"
 #include "depth_conversions.hpp"
-#include <math.h>
 #include <cv_bridge/cv_bridge.h>
+#include <math.h>
 
 
 namespace octomap_depth_mapping
@@ -12,38 +12,46 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     fx(524),
     fy(524),
     cx(316.8),
-    cy(238.5)
+    cy(238.5),
+    resolution(0.05),
+    encoding("mono16"),
+    frame_id("map")
 {
+    fx = this->declare_parameter("camera_model/fx", fx);
+    fy = this->declare_parameter("camera_model/fy", fy);
+    cx = this->declare_parameter("camera_model/cx", cx);
+    cy = this->declare_parameter("camera_model/cy", cy);
+    resolution = this->declare_parameter("resolution", resolution);
+    encoding = this->declare_parameter("encoding", encoding);
+    frame_id = this->declare_parameter("frame_id", frame_id);
+
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
     frame_to_cam_basis.setRPY(0, M_PI_2, M_PI); // 90 degrees around X axis
 
-    init(); 
 
-    RCLCPP_INFO(this->get_logger(), "Setup is done");
-}
-
-void OctomapDemap::init()
-{
     rclcpp::QoS qos(rclcpp::KeepLast(3));
 
     // pubs
-    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("/map", qos);
+    octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("map_out", qos);
 	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
 
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
     // subs
-    depth_sub_.subscribe(this, "/depth_image", rmw_qos_profile);
-    odom_sub_.subscribe(this, "/odom", rmw_qos_profile);
+    depth_sub_.subscribe(this, "image_in", rmw_qos_profile);
+    odom_sub_.subscribe(this, "odom_in", rmw_qos_profile);
 
     // bind subs with ugly way
     sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
+
+
+    RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
-    auto cv_ptr = cv_bridge::toCvCopy(depth_msg, "mono16");
+    auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
     update_map(cv_ptr->image, odom_msg->pose.pose);
     publish_all();
     RCLCPP_INFO(this->get_logger(), "callback");
