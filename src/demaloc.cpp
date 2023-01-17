@@ -111,8 +111,8 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             //tf2::Vector3 p(i*d, j*d, d);
 
             tf2::Vector3 p;
-            p.setX((j*d - cx) / fx);
-            p.setY((i*d - cy) / fy);
+            p.setX((j - cx) * d / fx);
+            p.setY((i - cy) * d / fy);
             p.setZ(d);
             p = t(p);
 
