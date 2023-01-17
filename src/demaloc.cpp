@@ -134,8 +134,20 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
 void OctomapDemap::print_params()
 {
-    RCLCPP_INFO(this->get_logger(), "Parameters: ");
-}
+    RCLCPP_INFO(this->get_logger(), "--- Launch Parameters ---");
+    RCLCPP_INFO_STREAM(this->get_logger(), "fx : " << fx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
+    RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
+    RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
+    RCLCPP_INFO_STREAM(this->get_logger(), "input_odom_topic : " << "odom_in");
+    RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
+    RCLCPP_INFO(this->get_logger(), "-------------------------");
+}   
+
 
 } // octomap_depth_mapping
 
