@@ -44,6 +44,11 @@ class OctomapDemap : public rclcpp::Node
 {
 protected:
 
+    double fx;
+    double fy;
+    double cx;
+    double cy;
+
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
 
@@ -51,7 +56,7 @@ protected:
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
 
     std::shared_ptr<message_filters::TimeSynchronizer
-        <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
+    <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
 
 
     octomap::Pointcloud pc;
@@ -59,7 +64,7 @@ protected:
     //std::shared_ptr<octomap::OcTree> ocmap;
 
     tf2::Quaternion frame_to_cam_basis;
-    
+
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 

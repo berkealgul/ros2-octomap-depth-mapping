@@ -8,7 +8,11 @@ namespace octomap_depth_mapping
 {
 
 OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string node_name): 
-    Node(node_name, options)
+    Node(node_name, options),
+    fx(524),
+    fy(524),
+    cx(320),
+    cy(240)
 {
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
