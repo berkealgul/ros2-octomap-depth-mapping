@@ -59,8 +59,7 @@ protected:
     //std::shared_ptr<octomap::OcTree> ocmap;
 
     tf2::Quaternion frame_to_cam_basis;
-
-    double rawDepthToMeters(ushort);
+    
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 

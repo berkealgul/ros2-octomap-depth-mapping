@@ -1,4 +1,5 @@
 #include "demaloc.hpp"
+#include "depth_conversions.hpp"
 #include <math.h>
 #include <cv_bridge/cv_bridge.h>
 
@@ -73,16 +74,6 @@ void OctomapDemap::publish_all()
     pc_publisher_->publish(pc_msg2);
 }
 
-double OctomapDemap::rawDepthToMeters(ushort raw_depth) 
-{
-    if(raw_depth > 6408)
-    {
-        return (double)(((2.5-0.9)/(15800.0-6408.0))*raw_depth);
-    }        
-
-    return 0;
-}
-
 void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
     pc.clear();
@@ -110,7 +101,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             //double min, raw = 0;
             //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
             ushort r = img.at<ushort>(i, j);
-            double d = rawDepthToMeters(r);
+            double d = depth_to_meters(r);
             //std::cout << r << " ";
 
             tf2::Vector3 p(i*d, j*d, d);
