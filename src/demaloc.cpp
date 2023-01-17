@@ -11,8 +11,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     Node(node_name, options),
     fx(524),
     fy(524),
-    cx(320),
-    cy(240)
+    cx(316.8),
+    cy(238.5)
 {
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
@@ -88,9 +88,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     t.setRotation(frame_to_cam_basis * t.getRotation());
 
     t_i = t.inverse();
-    
-    tf2::Matrix3x3 m(524, 0, 316.8, 0, 524, 238.5, 0, 0, 1);
-    auto m_i = m.inverse();
+
     auto r_i = t_i.getBasis();
     auto v_i = t_i.getOrigin();
     auto v = t.getOrigin();
@@ -107,11 +105,12 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             ushort r = img.at<ushort>(i, j);
             double d = depth_to_meters(r);
             //std::cout << r << " ";
+            //tf2::Vector3 p(i*d, j*d, d);
 
-            tf2::Vector3 p(i*d, j*d, d);
-            p = tf2::Vector3(m_i[0].dot(p), m_i[1].dot(p), m_i[2].dot(p));
-            // p+=v;
-            // p = tf2::Vector3(r_i[0].dot(p), r_i[1].dot(p), r_i[2].dot(p));
+            tf2::Vector3 p;
+            p.setX((j*d - cx) / fx);
+            p.setY((i*d - cy) / fy);
+            p.setZ(d);
             p = t(p);
 
             // Pw = R*(Pı * M-1) + T
