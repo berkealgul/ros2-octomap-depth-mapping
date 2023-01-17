@@ -27,7 +27,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    frame_to_cam_basis.setRPY(0, M_PI_2, M_PI); // 90 degrees around X axis
+    frame_to_cam_basis.setRPY(M_PI_2, 0, -M_PI_2); // 90 degrees around X axis
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -46,15 +46,16 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
 
+    print_params();
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
+    RCLCPP_INFO(this->get_logger(), "callback");
     auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
     update_map(cv_ptr->image, odom_msg->pose.pose);
     publish_all();
-    RCLCPP_INFO(this->get_logger(), "callback");
 }
 
 void OctomapDemap::publish_all()
@@ -129,6 +130,11 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             ocmap.insertRay(origin, target);
         }
     }
+}
+
+void OctomapDemap::print_params()
+{
+    RCLCPP_INFO(this->get_logger(), "Parameters: ");
 }
 
 } // octomap_depth_mapping

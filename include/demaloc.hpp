@@ -73,6 +73,8 @@ protected:
 
     void publish_all();
 
+    void print_params();
+
     void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
         const nav_msgs::msg::Odometry::ConstSharedPtr&);
 
