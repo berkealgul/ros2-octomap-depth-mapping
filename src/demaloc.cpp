@@ -1,7 +1,10 @@
 #include "demaloc.hpp"
 #include "depth_conversions.hpp"
+
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <cv_bridge/cv_bridge.h>
-#include <math.h>
 
 
 namespace octomap_depth_mapping
@@ -26,8 +29,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
 
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
-
-    frame_to_cam_basis.setRPY(M_PI_2, 0, -M_PI_2); // 90 degrees around X axis
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -94,8 +95,6 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     tf2::Transform t;
     tf2::fromMsg(pose, t);
 
-    t.setRotation(frame_to_cam_basis * t.getRotation());
-
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
     for(int i = 0; i < img.rows; i+=1)
@@ -107,26 +106,16 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
             ushort r = img.at<ushort>(i, j);
             double d = depth_to_meters(r);
-            //std::cout << r << " ";
-            //tf2::Vector3 p(i*d, j*d, d);
 
             tf2::Vector3 p;
-            p.setX((j*d - cx) / fx);
-            p.setY((i*d - cy) / fy);
+            p.setX((j - cx) * d / fx);
+            p.setY((i - cy) * d / fy);
             p.setZ(d);
             p = t(p);
 
-            // Pw = R*(Pı * M-1) + T
-            // 2d to 3d Tx-Ty are transistiob
-            // ray.x = (uv_rect.x - cx() - Tx()) / fx();
-            // ray.y = (uv_rect.y - cy() - Ty()) / fy();
-            // ray.z = 1.0;
-
-            // https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec#:~:text=The%20extrinsic%20matrix%20is%20a,to%20the%20pixel%20coordinate%20system.
             octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
             pc.push_back(target);
-            //ocmap.updateNode(target, true);
             ocmap.insertRay(origin, target);
         }
     }

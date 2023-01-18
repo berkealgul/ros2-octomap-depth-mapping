@@ -25,7 +25,7 @@ def generate_launch_description():
             remappings=[('image_in', LaunchConfiguration('input_image_topic')),
                         ('odom_in', LaunchConfiguration('input_odom_topic')),
                         ('map_out', LaunchConfiguration('output_map_topic'))],
-            parameters=[{'resoluti1on': LaunchConfiguration('resolution'),
+            parameters=[{'resolution': LaunchConfiguration('resolution'),
                          'frame_id': LaunchConfiguration('frame_id'),
                          'camera_model/fx': LaunchConfiguration('camera_model/fx'),
                          'camera_model/fy': LaunchConfiguration('camera_model/fy'),
