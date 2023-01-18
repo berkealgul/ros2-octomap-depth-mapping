@@ -94,7 +94,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     tf2::Transform t;
     tf2::fromMsg(pose, t);
 
-    t.setRotation(frame_to_cam_basis * t.getRotation());
+    //t.setRotation(frame_to_cam_basis * t.getRotation());
 
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
