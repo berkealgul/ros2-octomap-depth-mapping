@@ -12,7 +12,7 @@ def generate_launch_description():
         DeclareLaunchArgument('input_odom_topic', default_value='odom'),
         DeclareLaunchArgument('output_map_topic', default_value='octomap_fullmap'),
         DeclareLaunchArgument('frame_id', default_value='map'),
-        DeclareLaunchArgument('resolution', default_value='0.15'),
+        DeclareLaunchArgument('resolution', default_value='0.05'),
         DeclareLaunchArgument('camera_model/fx', default_value='524.0'),
         DeclareLaunchArgument('camera_model/fy', default_value='524.0'),
         DeclareLaunchArgument('camera_model/cx', default_value='316.8'),

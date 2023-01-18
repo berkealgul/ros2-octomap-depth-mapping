@@ -107,8 +107,6 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
             ushort r = img.at<ushort>(i, j);
             double d = depth_to_meters(r);
-            //std::cout << r << " ";
-            //tf2::Vector3 p(i*d, j*d, d);
 
             tf2::Vector3 p;
             p.setX((j - cx) * d / fx);
@@ -116,17 +114,9 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             p.setZ(d);
             p = t(p);
 
-            // Pw = R*(Pı * M-1) + T
-            // 2d to 3d Tx-Ty are transistiob
-            // ray.x = (uv_rect.x - cx() - Tx()) / fx();
-            // ray.y = (uv_rect.y - cy() - Ty()) / fy();
-            // ray.z = 1.0;
-
-            // https://towardsdatascience.com/what-are-intrinsic-and-extrinsic-camera-parameters-in-computer-vision-7071b72fb8ec#:~:text=The%20extrinsic%20matrix%20is%20a,to%20the%20pixel%20coordinate%20system.
             octomap::point3d target(p.getX(), p.getY(), p.getZ());
 
             pc.push_back(target);
-            //ocmap.updateNode(target, true);
             ocmap.insertRay(origin, target);
         }
     }
