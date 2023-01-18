@@ -5,7 +5,7 @@ namespace octomap_depth_mapping
 {
 
 // kinect v2
-// double depth_to_meters(ushort raw_depth) 
+// inline double depth_to_meters(ushort raw_depth) 
 // {
 //     if(raw_depth > 6408)
 //     {
@@ -16,7 +16,7 @@ namespace octomap_depth_mapping
 // }
 
 // tum dataset
-double depth_to_meters(ushort raw_depth) 
+inline double depth_to_meters(ushort raw_depth) 
 {
     return raw_depth / 5000.0;      
 }
