@@ -23,14 +23,8 @@
 #include "geometry_msgs/msg/pose.hpp"
 
 #include <opencv2/opencv.hpp>
-
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-// temporary
-#include "sensor_msgs/msg/point_cloud.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/point_cloud_conversion.hpp" 
-#include "geometry_msgs/msg/point32.hpp"
 
 namespace ph = std::placeholders;
 
@@ -51,7 +45,6 @@ protected:
     std::string frame_id;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
-	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
 
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;

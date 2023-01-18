@@ -35,7 +35,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 
     // pubs
     octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("map_out", qos);
-	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
 
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
     // subs
@@ -68,30 +67,10 @@ void OctomapDemap::publish_all()
     msg.header.frame_id = "map";
     
     octomap_publisher_->publish(msg);
-
-    sensor_msgs::msg::PointCloud pc_msg;
-
-    for(auto& p : pc)
-    {
-        geometry_msgs::msg::Point32 pp;
-        pp.x = p.x();
-        pp.y = p.y();
-        pp.z = p.z();
-        pc_msg.points.push_back(pp);
-    }
-
-    pc_msg.header.frame_id = "map";
-    
-    sensor_msgs::msg::PointCloud2 pc_msg2;
-    sensor_msgs::convertPointCloudToPointCloud2(pc_msg, pc_msg2);
-
-    pc_publisher_->publish(pc_msg2);
 }
 
 void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
-    pc.clear();
-
     tf2::Transform t;
     tf2::fromMsg(pose, t);
 
@@ -113,10 +92,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             p.setZ(d);
             p = t(p);
 
-            octomap::point3d target(p.getX(), p.getY(), p.getZ());
-
-            pc.push_back(target);
-            ocmap.insertRay(origin, target);
+            ocmap.insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
         }
     }
 }
