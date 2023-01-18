@@ -27,7 +27,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
-    frame_to_cam_basis.setRPY(M_PI_2, 0, -M_PI_2); // 90 degrees around X axis
+    frame_to_cam_basis.setRPY(M_PI_2, M_PI, M_PI_2); 
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
