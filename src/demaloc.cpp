@@ -1,7 +1,10 @@
 #include "demaloc.hpp"
 #include "depth_conversions.hpp"
+
+#include <tf2/LinearMath/Transform.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <cv_bridge/cv_bridge.h>
-#include <math.h>
 
 
 namespace octomap_depth_mapping
@@ -26,8 +29,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
 
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
-
-    frame_to_cam_basis.setRPY(M_PI_2, M_PI, M_PI_2); 
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
