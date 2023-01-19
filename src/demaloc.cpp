@@ -32,7 +32,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
 
-
     ocmap = std::make_shared<octomap::OcTree>(resolution);
 
 
