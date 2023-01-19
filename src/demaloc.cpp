@@ -17,6 +17,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     cx(316.8),
     cy(238.5),
     resolution(0.05),
+    padding(1),
     encoding("mono16"),
     frame_id("map")
 {
@@ -27,6 +28,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     resolution = this->declare_parameter("resolution", resolution);
     encoding = this->declare_parameter("encoding", encoding);
     frame_id = this->declare_parameter("frame_id", frame_id);
+    padding = this->declare_parameter("padding", padding);
 
     //ocmap = std::make_shared<octomap::OcTree>(0.1);
 
@@ -35,7 +37,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 
     // pubs
     octomap_publisher_ = this->create_publisher<octomap_msgs::msg::Octomap>("map_out", qos);
-	pc_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/pc", qos);
 
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
     // subs
@@ -68,57 +69,37 @@ void OctomapDemap::publish_all()
     msg.header.frame_id = "map";
     
     octomap_publisher_->publish(msg);
-
-    sensor_msgs::msg::PointCloud pc_msg;
-
-    for(auto& p : pc)
-    {
-        geometry_msgs::msg::Point32 pp;
-        pp.x = p.x();
-        pp.y = p.y();
-        pp.z = p.z();
-        pc_msg.points.push_back(pp);
-    }
-
-    pc_msg.header.frame_id = "map";
-    
-    sensor_msgs::msg::PointCloud2 pc_msg2;
-    sensor_msgs::convertPointCloudToPointCloud2(pc_msg, pc_msg2);
-
-    pc_publisher_->publish(pc_msg2);
 }
 
 void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
-    pc.clear();
-
     tf2::Transform t;
+    tf2::Vector3 p;
+
     tf2::fromMsg(pose, t);
 
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
-    for(int i = 0; i < img.rows; i+=1)
-    {
-        for(int j = 0; j < img.cols; j+=1)
-        {
-            //cv::Point minLoc, maxLoc;
-            //double min, raw = 0;
-            //cv::minMaxLoc(img, &min, &raw, &minLoc, &maxLoc);
-            ushort r = img.at<ushort>(i, j);
-            double d = depth_to_meters(r);
+    auto start = this->now();
 
-            tf2::Vector3 p;
+    for(int i = padding-1; i < img.rows; i+=padding)
+    {
+        for(int j = padding-1; j < img.cols; j+=padding)
+        {
+            double d = depth_to_meters(img.at<ushort>(i, j));
+            
             p.setX((j - cx) * d / fx);
             p.setY((i - cy) * d / fy);
             p.setZ(d);
             p = t(p);
 
-            octomap::point3d target(p.getX(), p.getY(), p.getZ());
-
-            pc.push_back(target);
-            ocmap.insertRay(origin, target);
+            ocmap.insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
         }
     }
+
+    auto end = this->now();
+    auto diff = end - start;
+    RCLCPP_INFO(this->get_logger(), "update map time : %f", diff.seconds());
 }
 
 void OctomapDemap::print_params()
@@ -128,6 +109,7 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
     RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
     RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
     RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
@@ -136,7 +118,6 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 }   
-
 
 } // octomap_depth_mapping
 

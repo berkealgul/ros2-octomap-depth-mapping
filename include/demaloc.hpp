@@ -23,14 +23,8 @@
 #include "geometry_msgs/msg/pose.hpp"
 
 #include <opencv2/opencv.hpp>
-
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-// temporary
-#include "sensor_msgs/msg/point_cloud.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/point_cloud_conversion.hpp" 
-#include "geometry_msgs/msg/point32.hpp"
 
 namespace ph = std::placeholders;
 
@@ -42,6 +36,7 @@ class OctomapDemap : public rclcpp::Node
 {
 protected:
 
+    int padding;    
     double fx;
     double fy;
     double cx;
@@ -50,18 +45,16 @@ protected:
     std::string encoding;
     std::string frame_id;
 
+    octomap::OcTree ocmap = octomap::OcTree(0.05);
+    //std::shared_ptr<octomap::OcTree> ocmap;
+
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
-	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pc_publisher_;
 
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
     message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
 
     std::shared_ptr<message_filters::TimeSynchronizer
         <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
-
-    octomap::Pointcloud pc;
-    octomap::OcTree ocmap = octomap::OcTree(0.05);
-    //std::shared_ptr<octomap::OcTree> ocmap;
 
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
