@@ -83,7 +83,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
     for(int i = padding-1; i < img.rows; i+=padding)
     {
-        const unsigned short* row = img.ptr<unsigned short>(i);
+        const ushort* row = img.ptr<ushort>(i);
 
         for(int j = padding-1; j < img.cols; j+=padding)
         {
