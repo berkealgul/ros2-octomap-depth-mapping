@@ -54,7 +54,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
 
 void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
 {
-    RCLCPP_INFO(this->get_logger(), "callback");
     auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
     update_map(cv_ptr->image, odom_msg->pose.pose);
     publish_all();
@@ -87,7 +86,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
         for(int j = padding-1; j < img.cols; j+=padding)
         {
             double d = depth_to_meters(img.at<ushort>(i, j));
-            
+
             p.setX((j - cx) * d / fx);
             p.setY((i - cy) * d / fy);
             p.setZ(d);
@@ -99,7 +98,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
     auto end = this->now();
     auto diff = end - start;
-    RCLCPP_INFO(this->get_logger(), "update map time : %f", diff.seconds());
+    RCLCPP_INFO(this->get_logger(), "update map time(sec) : %f", diff.seconds());
 }
 
 void OctomapDemap::print_params()
