@@ -89,6 +89,9 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
         {
             double d = depth_to_meters(row[j]);
 
+            if(d == 0)
+                continue;
+                
             p.setX((j - cx) * d / fx);
             p.setY((i - cy) * d / fy);
             p.setZ(d);
