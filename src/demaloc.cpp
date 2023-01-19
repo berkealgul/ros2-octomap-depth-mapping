@@ -32,7 +32,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
 
-    //ocmap = std::make_shared<octomap::OcTree>(0.1);
+
+    ocmap = std::make_shared<octomap::OcTree>(resolution);
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -66,7 +67,7 @@ void OctomapDemap::publish_all()
 {
     octomap_msgs::msg::Octomap msg;
 
-    octomap_msgs::fullMapToMsg(ocmap, msg);
+    octomap_msgs::fullMapToMsg(*ocmap, msg);
     msg.id = "OcTree";
     msg.header.frame_id = "map";
     
@@ -100,7 +101,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             p.setZ(d);
             p = t(p);
 
-            ocmap.insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
+            ocmap->insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
         }
     }
 
