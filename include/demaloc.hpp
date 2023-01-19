@@ -41,10 +41,15 @@ protected:
     double cx;
     double cy;
     double resolution;
+
     int padding;
     int kernel_size;
+    
     std::string encoding;
     std::string frame_id;
+
+    octomap::OcTree ocmap = octomap::OcTree(0.05);
+    //std::shared_ptr<octomap::OcTree> ocmap;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 
@@ -53,10 +58,6 @@ protected:
 
     std::shared_ptr<message_filters::TimeSynchronizer
         <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
-
-    octomap::Pointcloud pc;
-    octomap::OcTree ocmap = octomap::OcTree(0.05);
-    //std::shared_ptr<octomap::OcTree> ocmap;
 
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);

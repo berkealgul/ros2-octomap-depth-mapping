@@ -106,6 +106,8 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
     RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
     RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "kernel_size : " << kernel_size);
     RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
