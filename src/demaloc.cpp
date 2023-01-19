@@ -8,6 +8,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <cv_bridge/cv_bridge.h>
 
+namespace ph = std::placeholders;
 
 namespace octomap_depth_mapping
 {
@@ -21,7 +22,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     resolution(0.05),
     padding(1),
     encoding("mono16"),
-    frame_id("map")
+    frame_id("map"),
+    filename(""),
 {
     fx = this->declare_parameter("camera_model/fx", fx);
     fy = this->declare_parameter("camera_model/fy", fy);
@@ -31,6 +33,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     encoding = this->declare_parameter("encoding", encoding);
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
+    filename = this->declare_parameter("filename", filename);
 
     ocmap = std::make_shared<octomap::OcTree>(resolution);
 
@@ -50,12 +53,38 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         geometry_msgs::msg::PoseStamped>>(depth_sub_, pose_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
+    octomap_srv_ = this->create_service<octomap_msgs::srv::GetOctomap>("get_octomap", 
+        std::bind(&OctomapDemap::octomap_srv, this, ph::_1, ph::_2));
+
+    reset_srv_ = this->create_service<std_srvs::srv::Empty>("reset", 
+        std::bind(&OctomapDemap::reset_srv, this, ph::_1, ph::_2));
+
+    save_srv_ = this->create_service<std_srvs::srv::Empty>("save", 
+        std::bind(&OctomapDemap::save_srv, this, ph::_1, ph::_2));
+
 
     print_params();
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const geometry_msgs::msg::PoseStamped::ConstSharedPtr& pose_msg)
+bool OctomapDemap::octomap_srv(const octomap_msgs::srv::GetOctomap::Request::SharedPtr req, 
+    octomap_msgs::srv::GetOctomap::Response::SharedPtr res)
+{
+    return msg_from_ocmap(res->map);
+}
+
+bool OctomapDemap::save_srv (const std_srvs::srv::Empty::Request::SharedPtr req, 
+    const std_srvs::srv::Empty::Response::SharedPtr res)
+{
+    std::string filename = "octomap.ot";
+    ocmap->writeBinary(filename);
+
+    RCLCPP_INFO(this->get_logger(), "Octomap saved to %s", filename.c_str());
+    return true;
+}
+
+void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, 
+    const geometry_msgs::msg::PoseStamped::ConstSharedPtr& pose_msg)
 {
     auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
     update_map(cv_ptr->image, pose_msg->pose);
@@ -65,11 +94,7 @@ void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&
 void OctomapDemap::publish_all()
 {
     octomap_msgs::msg::Octomap msg;
-
-    octomap_msgs::fullMapToMsg(*ocmap, msg);
-    msg.id = "OcTree";
-    msg.header.frame_id = "map";
-    
+    msg_from_ocmap(msg);
     octomap_publisher_->publish(msg);
 }
 
@@ -121,8 +146,10 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
     RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
-    RCLCPP_INFO_STREAM(this->get_logger(), "input_odom_topic : " << "odom_in");
+    RCLCPP_INFO_STREAM(this->get_logger(), "input_pose_topic : " << "pose_in");
     RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
+    RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
+    RCLCPP_INFO_STREAM(this->get_logger(), "save_binary : " << save_binary);
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 }   
 

@@ -19,12 +19,13 @@ def generate_launch_description():
         DeclareLaunchArgument('camera_model/cy', default_value='238.5'),
         DeclareLaunchArgument('encoding', default_value='mono16'),
         DeclareLaunchArgument('padding', default_value='10'),
+        DeclareLaunchArgument('filename', default_value=''),
         Node(
             package='demaloc',
             executable='demaloc',
             output='screen',
             remappings=[('image_in', LaunchConfiguration('input_image_topic')),
-                        ('pose_in', LaunchConfiguration('input_odom_topic')),
+                        ('pose_in', LaunchConfiguration('input_pose_topic')),
                         ('map_out', LaunchConfiguration('output_map_topic'))],
             parameters=[{'resolution': LaunchConfiguration('resolution'),
                          'frame_id': LaunchConfiguration('frame_id'),
@@ -33,7 +34,8 @@ def generate_launch_description():
                          'camera_model/cx': LaunchConfiguration('camera_model/cx'),
                          'camera_model/cy': LaunchConfiguration('camera_model/cy'),
                          'encoding': LaunchConfiguration('encoding'),
-                         'padding': LaunchConfiguration('padding')
-                         }]
+                         'padding': LaunchConfiguration('padding'),
+                         'filename': LaunchConfiguration('filename'),
+                        }]
         )
     ])

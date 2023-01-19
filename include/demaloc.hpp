@@ -17,14 +17,13 @@
 #include "octomap/Pointcloud.h"
 #include "octomap_msgs/conversions.h"
 #include "octomap_msgs/msg/octomap.hpp"
+#include "octomap_msgs/srv/get_octomap.hpp"
 
+#include "std_srvs/srv/empty.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
 #include <opencv2/opencv.hpp>
-
-namespace ph = std::placeholders;
-
 
 namespace octomap_depth_mapping
 {
@@ -41,6 +40,7 @@ protected:
     int padding;    
     std::string encoding;
     std::string frame_id;
+    std::string filename;
 
     std::shared_ptr<octomap::OcTree> ocmap;
 
@@ -52,6 +52,10 @@ protected:
     std::shared_ptr<message_filters::TimeSynchronizer
         <sensor_msgs::msg::Image, geometry_msgs::msg::PoseStamped>> sync_;
 
+    rclcpp::Service<octomap_msgs::srv::GetOctomap>::SharedPtr octomap_srv_;
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_srv_;
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr save_srv_;
+
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 
@@ -61,6 +65,22 @@ protected:
 
     void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
         const geometry_msgs::msg::PoseStamped::ConstSharedPtr&);
+
+    void octomap_srv(const std::shared_ptr<octomap_msgs::srv::GetOctomap::Request>,
+        std::shared_ptr<octomap_msgs::srv::GetOctomap::Response>);
+
+    void reset_srv(const std::shared_ptr<std_srvs::srv::Empty::Request>,
+        std::shared_ptr<std_srvs::srv::Empty::Response>);
+
+    void save_srv(const std::shared_ptr<std_srvs::srv::Empty::Request>,
+        std::shared_ptr<std_srvs::srv::Empty::Response>);
+
+    inline bool msg_from_ocmap(octomap_msgs::msg::Octomap& msg)
+    {
+        msg.id = "OcTree";
+        msg.header.frame_id = frame_id;
+        return octomap_msgs::fullMapToMsg(*ocmap, msg);
+    }
 
 public:
 
