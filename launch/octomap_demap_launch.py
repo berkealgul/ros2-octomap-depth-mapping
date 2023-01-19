@@ -9,7 +9,7 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('input_image_topic', default_value='depth/rect'),
-        DeclareLaunchArgument('input_odom_topic', default_value='odom'),
+        DeclareLaunchArgument('input_odom_topic', default_value='pose'),
         DeclareLaunchArgument('output_map_topic', default_value='octomap_fullmap'),
         DeclareLaunchArgument('frame_id', default_value='map'),
         DeclareLaunchArgument('resolution', default_value='0.05'),
@@ -24,7 +24,7 @@ def generate_launch_description():
             executable='demaloc',
             output='screen',
             remappings=[('image_in', LaunchConfiguration('input_image_topic')),
-                        ('odom_in', LaunchConfiguration('input_odom_topic')),
+                        ('pose_in', LaunchConfiguration('input_odom_topic')),
                         ('map_out', LaunchConfiguration('output_map_topic'))],
             parameters=[{'resolution': LaunchConfiguration('resolution'),
                          'frame_id': LaunchConfiguration('frame_id'),

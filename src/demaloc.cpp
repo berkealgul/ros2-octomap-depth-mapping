@@ -4,6 +4,8 @@
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Quaternion.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <cv_bridge/cv_bridge.h>
 
 
@@ -41,10 +43,11 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     auto rmw_qos_profile = qos.get_rmw_qos_profile();
     // subs
     depth_sub_.subscribe(this, "image_in", rmw_qos_profile);
-    odom_sub_.subscribe(this, "odom_in", rmw_qos_profile);
+    pose_sub_.subscribe(this, "pose_in", rmw_qos_profile);
 
     // bind subs with ugly way
-    sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, nav_msgs::msg::Odometry>>(depth_sub_, odom_sub_, 3);
+    sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, 
+        geometry_msgs::msg::PoseStamped>>(depth_sub_, pose_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
 
@@ -52,10 +55,10 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const nav_msgs::msg::Odometry::ConstSharedPtr& odom_msg)
+void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, const geometry_msgs::msg::PoseStamped::ConstSharedPtr& pose_msg)
 {
     auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
-    update_map(cv_ptr->image, odom_msg->pose.pose);
+    update_map(cv_ptr->image, pose_msg->pose);
     publish_all();
 }
 
@@ -103,7 +106,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
     auto end = this->now();
     auto diff = end - start;
-    RCLCPP_INFO(this->get_logger(), "update map time(sec) : %f", diff.seconds());
+    RCLCPP_INFO(this->get_logger(), "update map time(sec) : %.4f", diff.seconds());
 }
 
 void OctomapDemap::print_params()
