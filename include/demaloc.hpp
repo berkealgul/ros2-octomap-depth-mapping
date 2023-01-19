@@ -42,8 +42,7 @@ protected:
     std::string encoding;
     std::string frame_id;
 
-    octomap::OcTree ocmap = octomap::OcTree(0.05);
-    //std::shared_ptr<octomap::OcTree> ocmap;
+    std::shared_ptr<octomap::OcTree> ocmap;
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 
