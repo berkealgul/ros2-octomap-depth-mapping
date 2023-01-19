@@ -17,6 +17,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     cx(316.8),
     cy(238.5),
     resolution(0.05),
+    padding(1),
+    kernel_size(1),
     encoding("mono16"),
     frame_id("map")
 {
@@ -112,7 +114,6 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 }   
-
 
 } // octomap_depth_mapping
 

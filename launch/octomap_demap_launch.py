@@ -18,6 +18,8 @@ def generate_launch_description():
         DeclareLaunchArgument('camera_model/cx', default_value='316.8'),
         DeclareLaunchArgument('camera_model/cy', default_value='238.5'),
         DeclareLaunchArgument('encoding', default_value='mono16'),
+        DeclareLaunchArgument('padding', default_value='1'),
+        DeclareLaunchArgument('kernel_size', default_value='1'),
         Node(
             package='demaloc',
             executable='demaloc',
@@ -31,6 +33,8 @@ def generate_launch_description():
                          'camera_model/fy': LaunchConfiguration('camera_model/fy'),
                          'camera_model/cx': LaunchConfiguration('camera_model/cx'),
                          'camera_model/cy': LaunchConfiguration('camera_model/cy'),
-                         'encoding': LaunchConfiguration('encoding')}]
+                         'encoding': LaunchConfiguration('encoding'),
+                         'padding': LaunchConfiguration('padding'),
+                         'kernel_size': LaunchConfiguration('kernel_size')}]
         )
     ])

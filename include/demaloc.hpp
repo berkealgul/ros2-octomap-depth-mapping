@@ -41,6 +41,8 @@ protected:
     double cx;
     double cy;
     double resolution;
+    int padding;
+    int kernel_size;
     std::string encoding;
     std::string frame_id;
 
