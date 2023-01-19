@@ -19,12 +19,9 @@
 #include "octomap_msgs/msg/octomap.hpp"
 
 #include "sensor_msgs/msg/image.hpp"
-#include "nav_msgs/msg/odometry.hpp"
-#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
 #include <opencv2/opencv.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
 
 namespace ph = std::placeholders;
 
@@ -51,10 +48,10 @@ protected:
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
-    message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
+    message_filters::Subscriber<geometry_msgs::msg::PoseStamped> pose_sub_;
 
     std::shared_ptr<message_filters::TimeSynchronizer
-        <sensor_msgs::msg::Image, nav_msgs::msg::Odometry>> sync_;
+        <sensor_msgs::msg::Image, geometry_msgs::msg::PoseStamped>> sync_;
 
 
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
@@ -64,7 +61,7 @@ protected:
     void print_params();
 
     void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
-        const nav_msgs::msg::Odometry::ConstSharedPtr&);
+        const geometry_msgs::msg::PoseStamped::ConstSharedPtr&);
 
 public:
 
