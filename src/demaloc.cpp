@@ -83,9 +83,11 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
 
     for(int i = padding-1; i < img.rows; i+=padding)
     {
+        const unsigned short* row = img.ptr<unsigned short>(i);
+
         for(int j = padding-1; j < img.cols; j+=padding)
         {
-            double d = depth_to_meters(img.at<ushort>(i, j));
+            double d = depth_to_meters(row[j]);
 
             p.setX((j - cx) * d / fx);
             p.setY((i - cy) * d / fy);
