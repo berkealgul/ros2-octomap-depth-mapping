@@ -1,3 +1,4 @@
+#pragma once
 #ifndef DEPTH_CONVERSIONS_HPP
 #define DEPTH_CONVERSIONS_HPP
 

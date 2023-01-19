@@ -36,15 +36,12 @@ class OctomapDemap : public rclcpp::Node
 {
 protected:
 
+    int padding;    
     double fx;
     double fy;
     double cx;
     double cy;
     double resolution;
-
-    int padding;
-    int kernel_size;
-    
     std::string encoding;
     std::string frame_id;
 
