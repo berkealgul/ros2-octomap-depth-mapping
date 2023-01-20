@@ -19,12 +19,13 @@ find_package(rclcpp_components REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(octomap_msgs REQUIRED)
 find_package(OpenMP REQUIRED)
+
 
 include_directories(include)
 
@@ -41,7 +42,7 @@ ament_target_dependencies(octomap_demap
   octomap_msgs
   sensor_msgs
   geometry_msgs
-  nav_msgs)
+  std_srvs)
 
 ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 
