@@ -67,6 +67,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     ocmap = std::make_shared<octomap::OcTree>(resolution);
     if(read_ocmap()) // will override default map if read is successful
     {
+        // TODO complete these and test io with invalid input
         // reset map params
         ocmap->setResolution(resolution);
     }
