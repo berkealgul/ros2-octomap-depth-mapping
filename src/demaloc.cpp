@@ -80,7 +80,7 @@ OctomapDemap::~OctomapDemap()
 {
     if(!save_on_shutdown)
         return;
-        
+
     if(save_ocmap())
     {
         RCLCPP_INFO_STREAM(this->get_logger(), "Save on shutdown successful " << filename);
@@ -220,7 +220,7 @@ bool OctomapDemap::read_ocmap()
         return false;
     }
 
-    //publish_all();
+    publish_all();
     RCLCPP_INFO_STREAM(this->get_logger(), "Octomap read from " << filename);
     return true;
 }
