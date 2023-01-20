@@ -13,7 +13,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 
-#include "octomap/OcTree.h"
+#include "octomap/octomap.h"
 #include "octomap/Pointcloud.h"
 #include "octomap_msgs/conversions.h"
 #include "octomap_msgs/msg/octomap.hpp"
@@ -41,6 +41,7 @@ protected:
     std::string encoding;
     std::string frame_id;
     std::string filename;
+    bool save_on_shutdown;
 
     std::shared_ptr<octomap::OcTree> ocmap;
 
@@ -63,17 +64,24 @@ protected:
 
     void print_params();
 
-    void demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr&, 
+    void demap_callback(
+        const sensor_msgs::msg::Image::ConstSharedPtr&, 
         const geometry_msgs::msg::PoseStamped::ConstSharedPtr&);
 
-    void octomap_srv(const std::shared_ptr<octomap_msgs::srv::GetOctomap::Request>,
+    bool octomap_srv(
+        const std::shared_ptr<octomap_msgs::srv::GetOctomap::Request>,
         std::shared_ptr<octomap_msgs::srv::GetOctomap::Response>);
 
-    void reset_srv(const std::shared_ptr<std_srvs::srv::Empty::Request>,
-        std::shared_ptr<std_srvs::srv::Empty::Response>);
+    bool reset_srv(
+        const std::shared_ptr<std_srvs::srv::Empty::Request>,
+        const std::shared_ptr<std_srvs::srv::Empty::Response>);
 
-    void save_srv(const std::shared_ptr<std_srvs::srv::Empty::Request>,
-        std::shared_ptr<std_srvs::srv::Empty::Response>);
+    bool save_srv(
+        const std::shared_ptr<std_srvs::srv::Empty::Request>,
+        const std::shared_ptr<std_srvs::srv::Empty::Response>);
+
+    bool save_ocmap();
+    bool read_ocmap();
 
     inline bool msg_from_ocmap(octomap_msgs::msg::Octomap& msg)
     {
@@ -85,6 +93,7 @@ protected:
 public:
 
     explicit OctomapDemap(const rclcpp::NodeOptions&, const std::string = "octomap_depth_mapping");
+    ~OctomapDemap();
 
 };
 

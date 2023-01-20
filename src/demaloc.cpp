@@ -24,6 +24,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     encoding("mono16"),
     frame_id("map"),
     filename(""),
+    save_on_shutdown(false)
 {
     fx = this->declare_parameter("camera_model/fx", fx);
     fy = this->declare_parameter("camera_model/fy", fy);
@@ -34,8 +35,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
-
-    ocmap = std::make_shared<octomap::OcTree>(resolution);
+    save_on_shutdown = this->declare_parameter("save_on_shutdown", save_on_shutdown);
 
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
@@ -63,27 +63,68 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         std::bind(&OctomapDemap::save_srv, this, ph::_1, ph::_2));
 
 
+
+    ocmap = std::make_shared<octomap::OcTree>(resolution);
+    if(read_ocmap()) // will override default map if read is successful
+    {
+        // reset map params
+        ocmap->setResolution(resolution);
+    }
+
+
     print_params();
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
-bool OctomapDemap::octomap_srv(const octomap_msgs::srv::GetOctomap::Request::SharedPtr req, 
-    octomap_msgs::srv::GetOctomap::Response::SharedPtr res)
+OctomapDemap::~OctomapDemap()
+{
+    if(!save_on_shutdown)
+        return;
+        
+    if(save_ocmap())
+    {
+        RCLCPP_INFO_STREAM(this->get_logger(), "Save on shutdown successful " << filename);
+    }
+    else
+    {
+        RCLCPP_ERROR(this->get_logger(), "Save on shutdown failed");
+    }
+}
+
+bool OctomapDemap::octomap_srv(
+    const std::shared_ptr<octomap_msgs::srv::GetOctomap::Request> req, 
+    std::shared_ptr<octomap_msgs::srv::GetOctomap::Response> res)
 {
     return msg_from_ocmap(res->map);
 }
 
-bool OctomapDemap::save_srv (const std_srvs::srv::Empty::Request::SharedPtr req, 
-    const std_srvs::srv::Empty::Response::SharedPtr res)
-{
-    std::string filename = "octomap.ot";
-    ocmap->writeBinary(filename);
+bool OctomapDemap::save_srv(
+    const std::shared_ptr<std_srvs::srv::Empty::Request> req, 
+    const std::shared_ptr<std_srvs::srv::Empty::Response> res)
+{   
+    if(save_ocmap())
+    {
+        RCLCPP_INFO_STREAM(this->get_logger(), "Octomap is saved to " << filename);
+        return true;
+    }
+    else
+    {
+        RCLCPP_ERROR(this->get_logger(), "Octomap is not saved");
+        return false;
+    }
+}
 
-    RCLCPP_INFO(this->get_logger(), "Octomap saved to %s", filename.c_str());
+bool OctomapDemap::reset_srv(
+    const std::shared_ptr<std_srvs::srv::Empty::Request> req, 
+    const std::shared_ptr<std_srvs::srv::Empty::Response> res)
+{
+    ocmap->clear();
+    RCLCPP_INFO(this->get_logger(), "Octomap reset");
     return true;
 }
 
-void OctomapDemap::demap_callback(const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, 
+void OctomapDemap::demap_callback(
+    const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg, 
     const geometry_msgs::msg::PoseStamped::ConstSharedPtr& pose_msg)
 {
     auto cv_ptr = cv_bridge::toCvCopy(depth_msg, encoding);
@@ -149,9 +190,63 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "input_pose_topic : " << "pose_in");
     RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
     RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
-    RCLCPP_INFO_STREAM(this->get_logger(), "save_binary : " << save_binary);
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 }   
+
+bool OctomapDemap::read_ocmap()
+{
+    if(filename.length() <= 3)
+        return false;
+
+    std::string ext = filename.substr(filename.length()-3, 3);
+
+    if(ext == ".bt")
+    {
+        if (!ocmap->readBinary(filename))
+            return false;
+    }
+    else if(ext == ".ot")
+    {
+        auto tree = octomap::AbstractOcTree::read(filename);
+        octomap::OcTree *octree = dynamic_cast<octomap::OcTree*>(tree);
+        ocmap = std::shared_ptr<octomap::OcTree>(octree);
+    }
+    else 
+        return false;
+
+    if(!ocmap)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Failed to read octomap");
+        return false;
+    }
+
+    //publish_all();
+    RCLCPP_INFO_STREAM(this->get_logger(), "Octomap read from " << filename);
+    return true;
+}
+
+bool OctomapDemap::save_ocmap()
+{
+    if(filename.length() <= 3)
+        return false;
+
+    std::string ext = filename.substr(filename.length()-3, 3);
+
+    if(ext == ".bt")
+    {
+        if (!ocmap->writeBinary(filename))
+            return false;
+    }
+    else if(ext == ".ot")
+    {
+        if (!ocmap->write(filename))
+            return false;
+    }
+    else 
+        return false;
+
+    return true;
+}
 
 } // octomap_depth_mapping
 

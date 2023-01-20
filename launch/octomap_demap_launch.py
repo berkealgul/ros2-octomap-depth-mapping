@@ -9,7 +9,7 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('input_image_topic', default_value='depth/rect'),
-        DeclareLaunchArgument('input_odom_topic', default_value='pose'),
+        DeclareLaunchArgument('input_pose_topic', default_value='pose'),
         DeclareLaunchArgument('output_map_topic', default_value='octomap_fullmap'),
         DeclareLaunchArgument('frame_id', default_value='map'),
         DeclareLaunchArgument('resolution', default_value='0.05'),
@@ -20,6 +20,7 @@ def generate_launch_description():
         DeclareLaunchArgument('encoding', default_value='mono16'),
         DeclareLaunchArgument('padding', default_value='10'),
         DeclareLaunchArgument('filename', default_value=''),
+        DeclareLaunchArgument('save_on_shutdown', default_value='false'),
         Node(
             package='demaloc',
             executable='demaloc',
@@ -36,6 +37,7 @@ def generate_launch_description():
                          'encoding': LaunchConfiguration('encoding'),
                          'padding': LaunchConfiguration('padding'),
                          'filename': LaunchConfiguration('filename'),
+                         'save_on_shutdown': LaunchConfiguration('save_on_shutdown')
                         }]
         )
     ])
