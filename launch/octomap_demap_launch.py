@@ -24,6 +24,7 @@ def generate_launch_description():
         Node(
             package='demaloc',
             executable='demaloc',
+            name='octomap_depth_mapping',
             output='screen',
             remappings=[('image_in', LaunchConfiguration('input_image_topic')),
                         ('pose_in', LaunchConfiguration('input_pose_topic')),
