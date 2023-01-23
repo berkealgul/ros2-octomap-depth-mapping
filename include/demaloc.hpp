@@ -45,12 +45,15 @@ protected:
     std::string filename;
     bool save_on_shutdown;
 
-#ifdef CUDA
-    cv::cuda::GpuMat gpu_depth;
-    ushort* pc;
-#endif
-
     std::shared_ptr<octomap::OcTree> ocmap;
+
+#ifdef CUDA
+    ushort* gpu_depth;
+    ushort* gpu_pc;
+    ushort *pc;
+    size_t pc_size;
+    size_t depth_size;
+#endif
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 

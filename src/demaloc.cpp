@@ -81,19 +81,18 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     }
 
 #ifdef CUDA
-    // allocate data on GPU
-    if(encoding == "mono8")
-    {
-        gpu_depth.create(height, width, CV_8UC1);
-    }
-    else if(encoding == "mono16")
-    {
-        gpu_depth.create(height, width, CV_16UC1);
-    }
-    else
-    {
-        RCLCPP_ERROR(this->get_logger(), "Unsupported encoding");
-    }
+    pc_size = 0;
+    // calculate point cloud size (i can use some math later on, but bruh)
+    for(int i = 0; i < width; i+=padding)
+        for(int j = 0; j < height; j+=padding)
+            pc_size+=3;   
+            
+    depth_size = width*height*sizeof(ushort)
+
+    // allocate memory
+    cudaMalloc<ushort>(&gpu_depth, depth_size);
+    cudaMalloc<ushort>(&gpu_pc, pc_size);
+    pc = (ushort*)malloc(pc_size*sizeof(ushort));
 #endif
 
     print_params();
@@ -115,8 +114,10 @@ OctomapDemap::~OctomapDemap()
     }
 
 #ifdef CUDA
-    // deallocate data on GPU
-    gpu_depth.release();
+    // deallocate memory
+    cudaFree(gpu_depth);
+    cudaFree(gpu_pc);
+    free(pc);
 #endif
 }
 
@@ -168,7 +169,7 @@ void OctomapDemap::publish_all()
     octomap_publisher_->publish(msg);
 }
 
-void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
+void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Pose& pose)
 {
     tf2::Transform t;
     tf2::fromMsg(pose, t);
@@ -176,16 +177,18 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
     auto start = this->now();
 
 #ifdef CUDA
-    RCLCPP_INFO(this->get_logger(), "CUDA go brr");
+    cudaMemcpy(gpu_depth ,depth.ptr(),depth_size,cudaMemcpyHostToDevice);
+    ushort *pc;
+    cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
 #else
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
     tf2::Vector3 p;
 
-    for(int i = padding-1; i < img.rows; i+=padding)
+    for(int i = padding-1; i < depth.rows; i+=padding)
     {
-        const ushort* row = img.ptr<ushort>(i);
+        const ushort* row = depth.ptr<ushort>(i);
 
-        for(int j = padding-1; j < img.cols; j+=padding)
+        for(int j = padding-1; j < depth.cols; j+=padding)
         {
             double d = depth_to_meters(row[j]);
 
