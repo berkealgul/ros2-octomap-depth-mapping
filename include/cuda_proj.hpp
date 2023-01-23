@@ -4,7 +4,6 @@
 
 #include <cuda_runtime.h>
 
-
 namespace octomap_depth_mapping
 {
 
