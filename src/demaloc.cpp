@@ -81,18 +81,23 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     }
 
 #ifdef CUDA
-    pc_size = 0;
-    // calculate point cloud size (i can use some math later on, but bruh)
+    pc_count = 0;
+    // calculate point count (i can use some math later on, but bruh)
     for(int i = 0; i < width; i+=padding)
+    {
         for(int j = 0; j < height; j+=padding)
-            pc_size+=3;   
-            
+        {
+            pc_count+=3;   
+        }
+    }
+
+    pc_size = pc_count *= sizeof(ushort);
     depth_size = width*height*sizeof(ushort)
 
     // allocate memory
     cudaMalloc<ushort>(&gpu_depth, depth_size);
     cudaMalloc<ushort>(&gpu_pc, pc_size);
-    pc = (ushort*)malloc(pc_size*sizeof(ushort));
+    pc = (ushort*)malloc(pc_size);
 #endif
 
     print_params();
@@ -173,15 +178,20 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 {
     tf2::Transform t;
     tf2::fromMsg(pose, t);
+    octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
     auto start = this->now();
 
 #ifdef CUDA
     cudaMemcpy(gpu_depth ,depth.ptr(),depth_size,cudaMemcpyHostToDevice);
-    ushort *pc;
+
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
+
+    for(int i = 0; i < pc_count; i+=3)
+    {
+        ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
+    }
 #else
-    octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
     tf2::Vector3 p;
 
     for(int i = padding-1; i < depth.rows; i+=padding)

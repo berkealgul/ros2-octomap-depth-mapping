@@ -51,6 +51,7 @@ protected:
     ushort* gpu_depth;
     ushort* gpu_pc;
     ushort *pc;
+    int pc_count;
     size_t pc_size;
     size_t depth_size;
 #endif
