@@ -13,6 +13,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+
 # user defined options
 set(USE_CUDA TRUE)
 
@@ -47,13 +48,12 @@ ament_target_dependencies(octomap_demap
   geometry_msgs
   std_srvs)
 
-ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
-
-
+# setup CUDA
 if(USE_CUDA)
-  # setup CUDA
   find_package(CUDA)
   add_compile_definitions(CUDA)
+  ament_target_dependencies(octomap_demap CUDA)
+  
   message("-- CUDA version: ${CUDA_VERSION}")
 
   set(
@@ -75,9 +75,11 @@ if(USE_CUDA)
     ${CUDA_NVCC_FLAGS};
     -gencode arch=compute_72,code=sm_72
   )
+  
   endif()
 endif()
 
+ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 
 rclcpp_components_register_node(octomap_demap
   PLUGIN "octomap_depth_mapping::OctomapDemap"

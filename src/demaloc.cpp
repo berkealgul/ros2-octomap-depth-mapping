@@ -8,7 +8,10 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <cv_bridge/cv_bridge.h>
 
+#ifdef CUDA
+#include <cuda_runtime.h>
 #include "cuda_proj.hpp"
+#endif
 
 
 namespace ph = std::placeholders;
@@ -189,10 +192,10 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
     RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
     RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
-    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
-    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
     RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
+    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
     RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
@@ -203,7 +206,23 @@ void OctomapDemap::print_params()
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 
 #ifdef CUDA
-    RCLCPP_INFO(this->get_logger(), "CUDA is enabled");
+    int devCount;
+    cudaGetDeviceCount(&devCount);
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "CUDA Devices: " << devCount);
+
+    for(int i = 0; i < devCount; ++i)
+    {
+        cudaDeviceProp props;
+        cudaGetDeviceProperties(&props, i);
+        RCLCPP_INFO_STREAM(this->get_logger(), "Dev-" << i << ": " << props.name << ": " << props.major << "." << props.minor);
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Global memory:   " << props.totalGlobalMem / (1024*1024) << "mb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Shared memory:   " << props.sharedMemPerBlock / 1024 << "kb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Constant memory: " << props.totalConstMem / 1024 << "kb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Block registers: " << props.regsPerBlock);
+    }
+
+    RCLCPP_INFO(this->get_logger(), "-------------------------");
 #endif
 
 }   
