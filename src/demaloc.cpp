@@ -8,6 +8,9 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <cv_bridge/cv_bridge.h>
 
+#include "cuda_proj.hpp"
+
+
 namespace ph = std::placeholders;
 
 namespace octomap_depth_mapping
@@ -21,6 +24,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     cy(238.5),
     resolution(0.05),
     padding(1),
+    width(640),
+    height(480),
     encoding("mono16"),
     frame_id("map"),
     filename(""),
@@ -36,7 +41,8 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
     save_on_shutdown = this->declare_parameter("save_on_shutdown", save_on_shutdown);
-
+    width = this->declare_parameter("width", width);
+    height = this->declare_parameter("height", height);
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
 
@@ -185,13 +191,21 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
     RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
     RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
+    RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
     RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
     RCLCPP_INFO_STREAM(this->get_logger(), "input_pose_topic : " << "pose_in");
     RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
     RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
+    RCLCPP_INFO_STREAM(this->get_logger(), "save_on_shutdown : " << save_on_shutdown);
     RCLCPP_INFO(this->get_logger(), "-------------------------");
+
+#ifdef CUDA
+    RCLCPP_INFO(this->get_logger(), "CUDA is enabled");
+#endif
+
 }   
 
 bool OctomapDemap::read_ocmap()

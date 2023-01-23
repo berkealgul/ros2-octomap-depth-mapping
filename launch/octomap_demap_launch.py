@@ -15,6 +15,8 @@ def generate_launch_description():
         DeclareLaunchArgument('resolution', default_value='0.05'),
         DeclareLaunchArgument('encoding', default_value='mono16'),
         DeclareLaunchArgument('padding', default_value='10'),
+        DeclareLaunchArgument('width', default_value='640'),
+        DeclareLaunchArgument('height', default_value='480'),
         DeclareLaunchArgument('input_image_topic', default_value='depth/rect'),
         DeclareLaunchArgument('input_pose_topic', default_value='pose'),
         DeclareLaunchArgument('output_map_topic', default_value='octomap_fullmap'),
@@ -38,7 +40,9 @@ def generate_launch_description():
                          'encoding': LaunchConfiguration('encoding'),
                          'padding': LaunchConfiguration('padding'),
                          'filename': LaunchConfiguration('filename'),
-                         'save_on_shutdown': LaunchConfiguration('save_on_shutdown')
+                         'save_on_shutdown': LaunchConfiguration('save_on_shutdown'),
+                         'width': LaunchConfiguration('width'),
+                         'height': LaunchConfiguration('height')
                         }]
         )
     ])

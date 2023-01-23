@@ -38,10 +38,16 @@ protected:
     double cy;
     double resolution;
     int padding;    
+    int width;
+    int height;
     std::string encoding;
     std::string frame_id;
     std::string filename;
     bool save_on_shutdown;
+
+    //cuda section
+    cv::cuda::GpuMat gpu_depth;
+    ushort* pc;
 
     std::shared_ptr<octomap::OcTree> ocmap;
 

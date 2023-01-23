@@ -13,6 +13,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# user defined options
+set(USE_CUDA TRUE)
+
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -47,31 +50,38 @@ ament_target_dependencies(octomap_demap
 ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 
 
-# setup CUDA
-find_package(CUDA)
-message("-- CUDA version: ${CUDA_VERSION}")
-
-set(
-  CUDA_NVCC_FLAGS
-  ${CUDA_NVCC_FLAGS};
-  -O3
-  -gencode arch=compute_37,code=sm_37
-  -gencode arch=compute_53,code=sm_53
-  -gencode arch=compute_60,code=sm_60
-  -gencode arch=compute_61,code=sm_61
-  -gencode arch=compute_62,code=sm_62
-)
-
-if(CUDA_VERSION_MAJOR GREATER 9)
-  message("-- CUDA ${CUDA_VERSION_MAJOR} detected, enabling SM_72")
+if(USE_CUDA)
+  # setup CUDA
+  find_package(CUDA)
+  add_compile_definitions(CUDA)
+  message("-- CUDA version: ${CUDA_VERSION}")
 
   set(
-   CUDA_NVCC_FLAGS
-   ${CUDA_NVCC_FLAGS};
-   -gencode arch=compute_72,code=sm_72
-   )
+    CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    -O3
+    -gencode arch=compute_37,code=sm_37
+    -gencode arch=compute_53,code=sm_53
+    -gencode arch=compute_60,code=sm_60
+    -gencode arch=compute_61,code=sm_61
+    -gencode arch=compute_62,code=sm_62
+  )
+
+  if(CUDA_VERSION_MAJOR GREATER 9)
+    message("-- CUDA ${CUDA_VERSION_MAJOR} detected, enabling SM_72")
+
+    set(
+    CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    -gencode arch=compute_72,code=sm_72
+  )
+  endif()
 endif()
 
+
+rclcpp_components_register_node(octomap_demap
+  PLUGIN "octomap_depth_mapping::OctomapDemap"
+  EXECUTABLE demaloc)
 
 install(
   DIRECTORY include/
@@ -85,16 +95,11 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include)
 
-rclcpp_components_register_node(octomap_demap
-  PLUGIN "octomap_depth_mapping::OctomapDemap"
-  EXECUTABLE demaloc)
-
 install(TARGETS demaloc
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
   launch
-  DESTINATION share/${PROJECT_NAME}/
-)
+  DESTINATION share/${PROJECT_NAME}/)
 
 ament_package()
