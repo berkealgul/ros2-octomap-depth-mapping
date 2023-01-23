@@ -4,6 +4,26 @@
 namespace octomap_depth_mapping
 {
 
+void project_depth_img(ushort* depth, double* pc, int width, int padding,
+    double fx, double fy, double cx, double cy,
+    double r1, double r2, double r3,
+    double r4, double r5, double r6,
+    double r7, double r8, double r9,
+    double t1, double t2, double t3)
+{
+    dim3 block(16, 16);
+    //dim3 grid((width + block.x - 1) / block.x, (height + block.y - 1) / block.y);
+    dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
+
+    project_kernel<<<grid, block>>>(depth, pc, width, padding,
+        fx, fy, cx, cy,
+        r1, r2, r3,
+        r4, r5, r6,
+        r7, r8, r9,
+        t1, t2, t3);
+
+    cudaDeviceSynchronize();
+}
 
 __global__ void project_kernel(ushort* depth, double* pc, int width, int padding,
     double fx, double fy, double cx, double cy,

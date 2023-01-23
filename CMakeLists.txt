@@ -26,15 +26,36 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(octomap_msgs REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(octomap REQUIRED)
 
 include_directories(include)
 
-add_library(octomap_demap SHARED
-  src/demaloc.cpp)
+# setup CUDA
+if(USE_CUDA)
+  find_package(CUDA REQUIRED)
+  
+  add_compile_definitions(CUDA)
+  
+  message("-- CUDA version: ${CUDA_VERSION}")
+
+  set(
+    CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    -O3
+    -gencode arch=compute_72,code=sm_72)
+
+  add_library(octomap_demap SHARED
+    src/demaloc.cpp
+    src/cuda_proj.cu)
+  
+    ament_target_dependencies(octomap_demap CUDA)
+else()
+  add_library(octomap_demap SHARED
+    src/demaloc.cpp)
+endif()
 
 ament_target_dependencies(octomap_demap
   rclcpp
@@ -47,25 +68,6 @@ ament_target_dependencies(octomap_demap
   sensor_msgs
   geometry_msgs
   std_srvs)
-
-# setup CUDA
-if(USE_CUDA)
-  find_package(CUDA)
-  add_compile_definitions(CUDA)
-  ament_target_dependencies(octomap_demap CUDA)
-  
-  message("-- CUDA version: ${CUDA_VERSION}")
-
-  set(
-    CUDA_NVCC_FLAGS
-    ${CUDA_NVCC_FLAGS};
-    -O3
-    -gencode arch=compute_72,code=sm_72
-  )
-
-  cuda_add_library(octomap_demap_cuda src/cuda_proj.cu)
-
-endif()
 
 ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 

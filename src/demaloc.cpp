@@ -188,14 +188,14 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
     auto o = t.getOrigin();
 
     // Specify a reasonable block size
-	const dim3 block(16,16);
+	//const dim3 block(16,16);
 
 	// Calculate grid size to cover the whole image
 	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
     
 	// Launch kernel
     // TODO: Carry kernel launch to .cu file so that nvcc can recognice this bs
-  	project_kernel<<<1, block>>>(gpu_depth, gpu_pc, width, padding,
+  	project_depth_img(gpu_depth, gpu_pc, width, padding,
         fx, fy, cx, cy,
         b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
         b.getRow(1).getX(), b.getRow(1).getY(), b.getRow(1).getZ(),
