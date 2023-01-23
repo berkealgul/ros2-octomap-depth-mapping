@@ -4,17 +4,16 @@
 
 #include <cuda_runtime.h>
 
+
 namespace octomap_depth_mapping
 {
 
-// template <typename T> // ushort for mono16, uchar for mono8
-// // @param depth: depth image
-// // @param pc: projected point cloud
-// // @param params: array of parameters = [fx, fy, cx, cy, r1, r[1-9], t[1-3]]
-// __global__ void project_kernel(ushort* depth, ushort* pc, double* params);
-
-
-
+__global__ void project_kernel(ushort* depth, double* pc, int width, int padding,
+    double fx, double fy, double cx, double cy,
+    double r1, double r2, double r3,
+    double r4, double r5, double r6,
+    double r7, double r8, double r9,
+    double t1, double t2, double t3);
 
 } // octomap_depth_mapping
 

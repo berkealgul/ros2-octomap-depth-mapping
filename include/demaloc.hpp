@@ -49,8 +49,8 @@ protected:
 
 #ifdef CUDA
     ushort* gpu_depth;
-    ushort* gpu_pc;
-    ushort *pc;
+    double* gpu_pc;
+    double* pc;
     int pc_count;
     size_t pc_size;
     size_t depth_size;

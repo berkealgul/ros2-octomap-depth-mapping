@@ -60,23 +60,11 @@ if(USE_CUDA)
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
     -O3
-    -gencode arch=compute_37,code=sm_37
-    -gencode arch=compute_53,code=sm_53
-    -gencode arch=compute_60,code=sm_60
-    -gencode arch=compute_61,code=sm_61
-    -gencode arch=compute_62,code=sm_62
-  )
-
-  if(CUDA_VERSION_MAJOR GREATER 9)
-    message("-- CUDA ${CUDA_VERSION_MAJOR} detected, enabling SM_72")
-
-    set(
-    CUDA_NVCC_FLAGS
-    ${CUDA_NVCC_FLAGS};
     -gencode arch=compute_72,code=sm_72
   )
-  
-  endif()
+
+  cuda_add_library(octomap_demap_cuda src/cuda_proj.cu)
+
 endif()
 
 ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)

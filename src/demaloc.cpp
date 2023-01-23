@@ -91,13 +91,13 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         }
     }
 
-    pc_size = pc_count *= sizeof(ushort);
-    depth_size = width*height*sizeof(ushort)
+    pc_size = pc_count *= sizeof(double);
+    depth_size = width*height*sizeof(ushort);
 
     // allocate memory
     cudaMalloc<ushort>(&gpu_depth, depth_size);
-    cudaMalloc<ushort>(&gpu_pc, pc_size);
-    pc = (ushort*)malloc(pc_size);
+    cudaMalloc<double>(&gpu_pc, pc_size);
+    pc = (double*)malloc(pc_size);
 #endif
 
     print_params();
@@ -189,18 +189,20 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 
     for(int i = 0; i < pc_count; i+=3)
     {
+        if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { return; }
+        
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
     }
 #else
     tf2::Vector3 p;
 
-    for(int i = padding-1; i < depth.rows; i+=padding)
+    for(int i = 0; i < depth.rows; i+=padding)
     {
         const ushort* row = depth.ptr<ushort>(i);
 
-        for(int j = padding-1; j < depth.cols; j+=padding)
+        for(int j = 0; j < depth.cols; j+=padding)
         {
-            double d = depth_to_meters(row[j]);
+            const double d = depth_to_meters(row[j]);
 
             if(d == 0)
                 continue;
