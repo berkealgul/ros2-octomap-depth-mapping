@@ -38,9 +38,9 @@ if(USE_CUDA)
   find_package(CUDA REQUIRED)
   
   add_compile_definitions(CUDA)
-  
-  message("-- CUDA version: ${CUDA_VERSION}")
 
+  message("-- CUDA version: ${CUDA_VERSION}")
+  
   set(
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
@@ -50,8 +50,10 @@ if(USE_CUDA)
   add_library(octomap_demap SHARED
     src/demaloc.cpp
     src/cuda_proj.cu)
-  
-    ament_target_dependencies(octomap_demap CUDA)
+
+  set_property(TARGET octomap_demap PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
+  ament_target_dependencies(octomap_demap CUDA)
 else()
   add_library(octomap_demap SHARED
     src/demaloc.cpp)
