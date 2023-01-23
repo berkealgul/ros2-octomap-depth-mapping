@@ -38,7 +38,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     cx = this->declare_parameter("camera_model/cx", cx);
     cy = this->declare_parameter("camera_model/cy", cy);
     resolution = this->declare_parameter("resolution", resolution);
-    //encoding = this->declare_parameter("encoding", encoding);
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
@@ -181,16 +180,33 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
     auto start = this->now();
-
+    
 #ifdef CUDA
     cudaMemcpy(gpu_depth ,depth.ptr(),depth_size,cudaMemcpyHostToDevice);
+
+    auto b = t.getBasis();
+    auto o = t.getOrigin();
+
+    // Specify a reasonable block size
+	const dim3 block(16,16);
+
+	// Calculate grid size to cover the whole image
+	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
+    
+	// Launch kernel
+  	project_kernel<<<1, block>>>(gpu_depth, gpu_pc, width, padding,
+        fx, fy, cx, cy,
+        b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
+        b.getRow(1).getX(), b.getRow(1).getY(), b.getRow(1).getZ(),
+        b.getRow(2).getX(), b.getRow(2).getY(), b.getRow(2).getZ(),
+        o.getX(), o.getY(), o.getZ());
 
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
 
     for(int i = 0; i < pc_count; i+=3)
     {
-        if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { return; }
-        
+        if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
+
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
     }
 #else
@@ -232,7 +248,6 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
     RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
     RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
-    //RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
     RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
