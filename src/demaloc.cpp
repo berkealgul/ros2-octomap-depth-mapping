@@ -194,6 +194,7 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
     
 	// Launch kernel
+    // TODO: Carry kernel launch to .cu file so that nvcc can recognice this bs
   	project_kernel<<<1, block>>>(gpu_depth, gpu_pc, width, padding,
         fx, fy, cx, cy,
         b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
