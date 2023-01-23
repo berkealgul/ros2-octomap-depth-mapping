@@ -45,9 +45,10 @@ protected:
     std::string filename;
     bool save_on_shutdown;
 
-    //cuda section
+#ifdef CUDA
     cv::cuda::GpuMat gpu_depth;
     ushort* pc;
+#endif
 
     std::shared_ptr<octomap::OcTree> ocmap;
 

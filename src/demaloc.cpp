@@ -9,10 +9,9 @@
 #include <cv_bridge/cv_bridge.h>
 
 #ifdef CUDA
-#include <cuda_runtime.h>
 #include "cuda_proj.hpp"
+#include <cuda_runtime.h>
 #endif
-
 
 namespace ph = std::placeholders;
 
@@ -39,7 +38,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     cx = this->declare_parameter("camera_model/cx", cx);
     cy = this->declare_parameter("camera_model/cy", cy);
     resolution = this->declare_parameter("resolution", resolution);
-    encoding = this->declare_parameter("encoding", encoding);
+    //encoding = this->declare_parameter("encoding", encoding);
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
@@ -62,6 +61,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         geometry_msgs::msg::PoseStamped>>(depth_sub_, pose_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
+    // services
     octomap_srv_ = this->create_service<octomap_msgs::srv::GetOctomap>("get_octomap", 
         std::bind(&OctomapDemap::octomap_srv, this, ph::_1, ph::_2));
 
@@ -72,7 +72,6 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         std::bind(&OctomapDemap::save_srv, this, ph::_1, ph::_2));
 
 
-
     ocmap = std::make_shared<octomap::OcTree>(resolution);
     if(read_ocmap()) // will override default map if read is successful
     {
@@ -81,6 +80,21 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         ocmap->setResolution(resolution);
     }
 
+#ifdef CUDA
+    // allocate data on GPU
+    if(encoding == "mono8")
+    {
+        gpu_depth.create(height, width, CV_8UC1);
+    }
+    else if(encoding == "mono16")
+    {
+        gpu_depth.create(height, width, CV_16UC1);
+    }
+    else
+    {
+        RCLCPP_ERROR(this->get_logger(), "Unsupported encoding");
+    }
+#endif
 
     print_params();
     RCLCPP_INFO(this->get_logger(), "Setup is done");
@@ -99,6 +113,11 @@ OctomapDemap::~OctomapDemap()
     {
         RCLCPP_ERROR(this->get_logger(), "Save on shutdown failed");
     }
+
+#ifdef CUDA
+    // deallocate data on GPU
+    gpu_depth.release();
+#endif
 }
 
 bool OctomapDemap::octomap_srv(
@@ -152,13 +171,15 @@ void OctomapDemap::publish_all()
 void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
 {
     tf2::Transform t;
-    tf2::Vector3 p;
-
     tf2::fromMsg(pose, t);
 
-    octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
-
     auto start = this->now();
+
+#ifdef CUDA
+    RCLCPP_INFO(this->get_logger(), "CUDA go brr");
+#else
+    octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
+    tf2::Vector3 p;
 
     for(int i = padding-1; i < img.rows; i+=padding)
     {
@@ -179,6 +200,7 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             ocmap->insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
         }
     }
+#endif
 
     auto end = this->now();
     auto diff = end - start;
@@ -195,7 +217,7 @@ void OctomapDemap::print_params()
     RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
     RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
     RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
-    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
+    //RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
     RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
@@ -224,7 +246,6 @@ void OctomapDemap::print_params()
 
     RCLCPP_INFO(this->get_logger(), "-------------------------");
 #endif
-
 }   
 
 bool OctomapDemap::read_ocmap()
