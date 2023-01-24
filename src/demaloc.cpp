@@ -13,6 +13,8 @@
 #include <cuda_runtime.h>
 #endif
 
+#define CUDA //tem
+
 namespace ph = std::placeholders;
 
 namespace octomap_depth_mapping
@@ -192,7 +194,6 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 
 	// Calculate grid size to cover the whole image
 	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
-    RCLCPP_INFO(this->get_logger(), "lol");
 	// Launch kernel
     // TODO: Carry kernel launch to .cu file so that nvcc can recognice this bs
   	project_depth_img(gpu_depth, gpu_pc, width, padding,
@@ -203,9 +204,12 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
         o.getX(), o.getY(), o.getZ());
 
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
-
-    for(int i = 0; i < pc_count; i+=3)
+    for(int i = 0; i < pc_count-3; i+=3)
     {
+        break;
+        if(i > 921600)
+            RCLCPP_INFO(this->get_logger(), "LOL");
+        //RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
         if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
 
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));

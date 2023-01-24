@@ -13,8 +13,8 @@ void project_depth_img(ushort* depth, double* pc, int width, int padding,
 {
     dim3 block(16, 16);
     //dim3 grid((width + block.x - 1) / block.x, (height + block.y - 1) / block.y);
-    dim3 grid((width + block.x - 1) / block.x, (width + block.y - 1) / block.y);
-
+    dim3 grid((width + block.x - 1) / block.x, (480 + block.y - 1) / block.y);
+    
     project_kernel<<<grid, block>>>(depth, pc, width, padding,
         fx, fy, cx, cy,
         r1, r2, r3,
