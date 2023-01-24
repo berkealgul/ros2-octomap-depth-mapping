@@ -92,7 +92,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         }
     }
 
-    pc_size = pc_count *= sizeof(double);
+    pc_size = pc_count * sizeof(double);
     depth_size = width*height*sizeof(ushort);
 
     // allocate memory
@@ -206,12 +206,8 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
     for(int i = 0; i < pc_count-3; i+=3)
     {
-        break;
-        if(i > 921600)
-            RCLCPP_INFO(this->get_logger(), "LOL");
-        //RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
         if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
-
+        RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
     }
 #else
