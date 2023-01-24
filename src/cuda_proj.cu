@@ -2,6 +2,7 @@
 #include "depth_conversions.hpp"
 
 #include <stdio.h>
+#include <iostream>
 
 namespace octomap_depth_mapping
 {
@@ -25,6 +26,9 @@ void project_depth_img(ushort* depth, double* pc, int width, int padding,
         t1, t2, t3);
 
     cudaDeviceSynchronize();
+    // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html#group__CUDART__TYPES_1g3f51e3575c2178246db0a94a430e0038
+    // error 209 no available kernel image ://
+    std::cout << cudaGetLastError() << std::endl;
 }
 
 __global__ void project_kernel(ushort* depth, double* pc, int width, int padding,
@@ -61,6 +65,5 @@ __global__ void project_kernel(ushort* depth, double* pc, int width, int padding
 
     printf("i: %d, j: %d, x: %f, y: %f, z: %f\n", i,j,x,y,z);
 }
-
 
 } // octomap_depth_mapping
