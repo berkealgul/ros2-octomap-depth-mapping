@@ -48,6 +48,14 @@ __global__ void project_kernel(ushort* depth, double* pc, int width, int padding
     double d;
     depth_to_meters(depth[idx], d);
 
+    if(d == 0)
+    {
+        pc[idx] = 0;
+        pc[idx+1] = 0;
+        pc[idx+2] = 0;
+        return;
+    }
+
     // 3d coordinates
     double x = (i - cx) * d / fx;
     double y = (j - cy) * d / fy;
