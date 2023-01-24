@@ -192,7 +192,7 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 
 	// Calculate grid size to cover the whole image
 	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
-    
+    RCLCPP_INFO(this->get_logger(), "lol");
 	// Launch kernel
     // TODO: Carry kernel launch to .cu file so that nvcc can recognice this bs
   	project_depth_img(gpu_depth, gpu_pc, width, padding,

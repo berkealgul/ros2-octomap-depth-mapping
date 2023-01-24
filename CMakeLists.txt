@@ -47,18 +47,9 @@ if(USE_CUDA)
     -O3
     -gencode arch=compute_72,code=sm_72)
 
-  add_library(octomap_demap SHARED
+  cuda_add_library(octomap_demap SHARED
     src/demaloc.cpp
     src/cuda_proj.cu)
-
-  cuda_add_library(octomap_demap_cuda SHARED
-    src/cuda_proj.cu)
-  
-  target_link_libraries(octomap_demap octomap_demap_cuda)
-
-  set_property(TARGET octomap_demap PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-  ament_target_dependencies(octomap_demap CUDA)
 else()
   add_library(octomap_demap SHARED
     src/demaloc.cpp)
