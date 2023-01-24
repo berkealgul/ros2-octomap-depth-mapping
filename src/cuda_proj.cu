@@ -53,10 +53,14 @@ __global__ void project_kernel(ushort* depth, double* pc, int width, int padding
     double y = (j - cy) * d / fy;
     double z = d;
 
+    double x_ = x;
+    double y_ = y;
+    double z_ = z;
+
     // apply transform to point
-    x = r1*x + r2*y + r3*z + t1;
-    y = r4*x + r5*y + r6*z + t2;
-    z = r7*x + r8*y + r9*z + t3;
+    x = r1*x_ + r2*y_ + r3*z_ + t1;
+    y = r4*x_ + r5*y_ + r6*z_ + t2;
+    z = r7*x_ + r8*y_ + r9*z_ + t3;
 
     pc[idx] = x;
     pc[idx+1] = y;

@@ -13,8 +13,6 @@
 #include <cuda_runtime.h>
 #endif
 
-#define CUDA //tem
-
 namespace ph = std::placeholders;
 
 namespace octomap_depth_mapping
