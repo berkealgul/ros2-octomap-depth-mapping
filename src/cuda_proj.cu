@@ -1,7 +1,6 @@
 #include "cuda_proj.hpp" 
 #include "depth_conversions.hpp"
 
-#include <stdio.h>
 #include <iostream>
 
 namespace octomap_depth_mapping
@@ -62,8 +61,6 @@ __global__ void project_kernel(ushort* depth, double* pc, int width, int padding
     pc[idx] = x;
     pc[idx+1] = y;
     pc[idx+2] = z;
-
-    printf("i: %d, j: %d, x: %f, y: %f, z: %f\n", i,j,x,y,z);
 }
 
 } // octomap_depth_mapping
