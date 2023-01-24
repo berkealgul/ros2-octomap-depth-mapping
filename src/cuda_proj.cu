@@ -1,6 +1,8 @@
 #include "cuda_proj.hpp" 
 #include "depth_conversions.hpp"
 
+#include <stdio.h>
+
 namespace octomap_depth_mapping
 {
 
@@ -22,7 +24,7 @@ void project_depth_img(ushort* depth, double* pc, int width, int padding,
         r7, r8, r9,
         t1, t2, t3);
 
-    //cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
 }
 
 __global__ void project_kernel(ushort* depth, double* pc, int width, int padding,
@@ -56,6 +58,8 @@ __global__ void project_kernel(ushort* depth, double* pc, int width, int padding
     pc[idx] = x;
     pc[idx+1] = y;
     pc[idx+2] = z;
+
+    printf("i: %d, j: %d, x: %f, y: %f, z: %f\n", i,j,x,y,z);
 }
 
 
