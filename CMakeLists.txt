@@ -45,7 +45,7 @@ if(USE_CUDA)
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
     -O3
-    -gencode arch=compute_72,code=sm_72)
+    -gencode arch=compute_50,code=sm_50)
 
   cuda_add_library(octomap_demap SHARED
     src/demaloc.cpp

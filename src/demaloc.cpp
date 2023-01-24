@@ -200,11 +200,11 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
         o.getX(), o.getY(), o.getZ());
 
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
-    
+
     for(int i = 0; i < pc_count-3; i+=3)
     {
         if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
-        RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
+        //RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
     }
 #else
