@@ -49,4 +49,12 @@ In addition, images are assumed to be rectified beforehand; thus no distortion p
 
 ## Cuda
 
-By default cuda is not supported. In order to compile with cuda uncomment line at `octomap_depth_mapping` 
+By default cuda is not supported. In order to compile with cuda, uncomment line at `CMakeLists.txt` file
+
+```cmake
+# uncomment this line to use cuda
+#set(USE_CUDA TRUE)
+```
+
+I developed this package with cuda toolkit 11.4 and this package supports with gpu [compute capabilities](https://developer.nvidia.com/cuda-gpus) between 3.5-8.7
+
