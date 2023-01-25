@@ -33,8 +33,32 @@ Main mapping and publishing node
 
 ### Subscribed Topics 
 
-* `depth/rect` (sensor_msgs/Image)   : depth image
+* `depth/rect` (sensor_msgs/Image)   : depth image [Markdown - Link](#Usage)
 * `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## About Image Data
 
