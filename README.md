@@ -56,5 +56,4 @@ By default cuda is not supported. In order to compile with cuda, uncomment line 
 #set(USE_CUDA TRUE)
 ```
 
-I developed this package with cuda toolkit 11.4 and this package supports with gpu [compute capabilities](https://developer.nvidia.com/cuda-gpus) between 3.5-8.7
-
+This package developed with cuda toolkit 11.4 and supports with [gpu compute capabilities](https://developer.nvidia.com/cuda-gpus) 3.5 and above
