@@ -39,6 +39,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
+    encoding = this->declare_parameter("encoding", encoding);
     save_on_shutdown = this->declare_parameter("save_on_shutdown", save_on_shutdown);
     width = this->declare_parameter("width", width);
     height = this->declare_parameter("height", height);
@@ -121,6 +122,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/min : " << thresMin);
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/max : " << thresMax);
     RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
+    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
     RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
     RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
     RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
