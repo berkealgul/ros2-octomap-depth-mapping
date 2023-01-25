@@ -36,10 +36,21 @@ Main mapping and publishing node
 * `depth/rect` (sensor_msgs/Image)   : rectified depth image see [here](#About-Image-Data) for details
 * `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
 
+### Parameters
+|Name|Default|Type|Description|
+|---|---|---|---|
+|`sensor_model/fx` | 524.0 | double | Camera fx calibration value |
+|`sensor_model/fy` | 524.0 | double | Camera fy calibration value |
+|`sensor_model/cx` | 316.8 | double | Camera cx calibration value |
+|`sensor_model/cy` | 238.5 | double | Camera cy calibration value |
+|`sensor_model/hit` | 0.7 | double | - |
+|`sensor_model/miss`| 0.4 | double | - |
+|`sensor_model/min` | 0.12 | double | - |
+|`sensor_model/max` | 0.97 | double | -|
 
 ## About Image Data
 
-This package supports 8 or 16 bit greyscale images
+This package supports 8 and 16 bit greyscale images
 
 `CV_U8C1` and `CV_16UC1` in OpenCV [literature](http://ninghang.blogspot.com/2012/11/list-of-mat-type-in-opencv.html) 
 
@@ -57,3 +68,5 @@ By default cuda is not supported. In order to compile with cuda, uncomment [line
 ```
 
 This package developed with cuda toolkit 11.4 and supports with [gpu compute capabilities](https://developer.nvidia.com/cuda-gpus) 3.5 and above
+
+To learn more about cuda device compatibility [look at this link](https://docs.nvidia.com/deploy/cuda-compatibility/index.html)
