@@ -17,7 +17,6 @@ endif()
 # user defined options
 set(USE_CUDA TRUE)
 
-
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -27,9 +26,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(octomap_msgs REQUIRED)
-find_package(OpenMP REQUIRED)
 find_package(octomap REQUIRED)
+find_package(octomap_msgs REQUIRED)
 
 include_directories(include)
 

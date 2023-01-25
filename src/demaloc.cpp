@@ -187,9 +187,6 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
     auto b = t.getBasis();
     auto o = t.getOrigin();
 
-	// Calculate grid size to cover the whole image
-	//const dim3 grid(cv::cuda::device::divUp(depth.cols, block.x), cv::cuda::device::divUp(depth.rows, block.y));
-
   	project_depth_img(gpu_depth, gpu_pc, width, padding,
         fx, fy, cx, cy,
         b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
@@ -199,10 +196,9 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
 
     cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
 
-    for(int i = 0; i < pc_count-3; i+=3)
+    for(int i = 0, n = pc_count-3; i < n; i+=3)
     {
         if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
-        //RCLCPP_INFO(this->get_logger(), "p-%d-921600-, %.2f, %.2f, %.2f",i, pc[i], pc[i+1], pc[i+2]);
         ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
     }
 #else
