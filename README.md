@@ -47,3 +47,6 @@ This package supports 8 or 16 bit greyscale images
 
 In addition, images are assumed to be rectified beforehand; thus no distortion parameters are needed for this package
 
+## Cuda
+
+By default cuda is not supported. In order to compile with cuda uncomment line at `octomap_depth_mapping` 
