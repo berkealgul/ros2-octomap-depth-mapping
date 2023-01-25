@@ -32,16 +32,16 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     filename(""),
     save_on_shutdown(false)
 {
-    fx               = this->declare_parameter("sensor_model/fx", fx);
-    fy               = this->declare_parameter("sensor_model/fy", fy);
-    cx               = this->declare_parameter("sensor_model/cx", cx);
-    cy               = this->declare_parameter("sensor_model/cy", cy);
-    frame_id         = this->declare_parameter("frame_id", frame_id);
-    padding          = this->declare_parameter("padding", padding);
-    filename         = this->declare_parameter("filename", filename);
+    fx = this->declare_parameter("sensor_model/fx", fx);
+    fy = this->declare_parameter("sensor_model/fy", fy);
+    cx = this->declare_parameter("sensor_model/cx", cx);
+    cy = this->declare_parameter("sensor_model/cy", cy);
+    frame_id = this->declare_parameter("frame_id", frame_id);
+    padding = this->declare_parameter("padding", padding);
+    filename = this->declare_parameter("filename", filename);
     save_on_shutdown = this->declare_parameter("save_on_shutdown", save_on_shutdown);
-    width            = this->declare_parameter("width", width);
-    height           = this->declare_parameter("height", height);
+    width = this->declare_parameter("width", width);
+    height = this->declare_parameter("height", height);
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
 
