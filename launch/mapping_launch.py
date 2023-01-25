@@ -26,7 +26,7 @@ def generate_launch_description():
         Node(
             package='octomap_depth_mapping',
             executable='octomap_depth_mapping',
-            name='octomap_depth_mapping',
+            name='octodm_node',
             output='screen',
             remappings=[('image_in', 'depth/rect'),
                         ('pose_in', 'pose'),
