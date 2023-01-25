@@ -10,6 +10,7 @@ namespace octomap_depth_mapping
 {
 
 #ifdef CUDA
+
 // kinect v2 cuda
 __device__ __forceinline__ void depth_to_meters(ushort raw_depth, double& depth) 
 {
@@ -20,7 +21,9 @@ __device__ __forceinline__ void depth_to_meters(ushort raw_depth, double& depth)
     else
         depth = 0;
 }
+
 #else
+
 // kinect v2
 inline double depth_to_meters(ushort raw_depth) 
 {
@@ -31,6 +34,7 @@ inline double depth_to_meters(ushort raw_depth)
 
     return 0;
 }
+
 #endif
 
 } // octomap_depth_mapping
