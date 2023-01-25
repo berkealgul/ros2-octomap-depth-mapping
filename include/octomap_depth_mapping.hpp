@@ -25,6 +25,10 @@
 
 #include <opencv2/opencv.hpp>
 
+#ifdef CUDA
+#include <cuda_runtime.h>
+#endif
+
 namespace octomap_depth_mapping
 {
 
@@ -36,14 +40,26 @@ protected:
     double fy;
     double cx;
     double cy;
-    double resolution;
     int padding;    
+    int width;
+    int height;
     std::string encoding;
     std::string frame_id;
     std::string filename;
     bool save_on_shutdown;
 
     std::shared_ptr<octomap::OcTree> ocmap;
+
+#ifdef CUDA
+    ushort* gpu_depth;
+    double* gpu_pc;
+    double* pc;
+    int pc_count;
+    size_t pc_size;
+    size_t depth_size;
+    dim3 block;
+    dim3 grid;
+#endif
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;
 
@@ -61,8 +77,6 @@ protected:
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 
     void publish_all();
-
-    void print_params();
 
     void demap_callback(
         const sensor_msgs::msg::Image::ConstSharedPtr&, 

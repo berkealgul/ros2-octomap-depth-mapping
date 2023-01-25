@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(demaloc)
+project(octomap_depth_mapping)
 
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -13,6 +13,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+
+# uncomment this line to use cuda
+#set(USE_CUDA TRUE)
+
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -21,16 +26,33 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(octomap REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(octomap REQUIRED)
 find_package(octomap_msgs REQUIRED)
-find_package(OpenMP REQUIRED)
-
 
 include_directories(include)
 
-add_library(octomap_demap SHARED
-  src/demaloc.cpp)
+# setup CUDA
+if(USE_CUDA)
+  find_package(CUDA REQUIRED)
+  
+  add_compile_definitions(CUDA)
+
+  message("-- CUDA version: ${CUDA_VERSION}")
+  
+  set(
+    CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    -O3
+    -gencode arch=compute_50,code=sm_50)
+
+  cuda_add_library(octomap_demap SHARED
+    src/${PROJECT_NAME}.cpp
+    src/cuda_proj.cu)
+else()
+  add_library(octomap_demap SHARED
+    src/${PROJECT_NAME}.cpp)
+endif()
 
 ament_target_dependencies(octomap_demap
   rclcpp
@@ -46,6 +68,10 @@ ament_target_dependencies(octomap_demap
 
 ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 
+rclcpp_components_register_node(octomap_demap
+  PLUGIN "octomap_depth_mapping::OctomapDemap"
+  EXECUTABLE ${PROJECT_NAME})
+
 install(
   DIRECTORY include/
   DESTINATION include)
@@ -58,16 +84,11 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include)
 
-rclcpp_components_register_node(octomap_demap
-  PLUGIN "octomap_depth_mapping::OctomapDemap"
-  EXECUTABLE demaloc)
-
-install(TARGETS demaloc
+install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
   launch
-  DESTINATION share/${PROJECT_NAME}/
-)
+  DESTINATION share/${PROJECT_NAME}/)
 
 ament_package()

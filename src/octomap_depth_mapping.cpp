@@ -1,4 +1,4 @@
-#include "demaloc.hpp"
+#include "octomap_depth_mapping.hpp"
 #include "depth_conversions.hpp"
 
 #include <tf2/LinearMath/Transform.h>
@@ -7,6 +7,11 @@
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <cv_bridge/cv_bridge.h>
+
+#ifdef CUDA
+#include "cuda_proj.hpp"
+#include <cuda_runtime.h>
+#endif
 
 namespace ph = std::placeholders;
 
@@ -19,24 +24,24 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     fy(524),
     cx(316.8),
     cy(238.5),
-    resolution(0.05),
     padding(1),
+    width(640),
+    height(480),
     encoding("mono16"),
     frame_id("map"),
     filename(""),
     save_on_shutdown(false)
 {
-    fx = this->declare_parameter("camera_model/fx", fx);
-    fy = this->declare_parameter("camera_model/fy", fy);
-    cx = this->declare_parameter("camera_model/cx", cx);
-    cy = this->declare_parameter("camera_model/cy", cy);
-    resolution = this->declare_parameter("resolution", resolution);
-    encoding = this->declare_parameter("encoding", encoding);
+    fx = this->declare_parameter("sensor_model/fx", fx);
+    fy = this->declare_parameter("sensor_model/fy", fy);
+    cx = this->declare_parameter("sensor_model/cx", cx);
+    cy = this->declare_parameter("sensor_model/cy", cy);
     frame_id = this->declare_parameter("frame_id", frame_id);
     padding = this->declare_parameter("padding", padding);
     filename = this->declare_parameter("filename", filename);
     save_on_shutdown = this->declare_parameter("save_on_shutdown", save_on_shutdown);
-
+    width = this->declare_parameter("width", width);
+    height = this->declare_parameter("height", height);
 
     rclcpp::QoS qos(rclcpp::KeepLast(3));
 
@@ -53,6 +58,7 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
         geometry_msgs::msg::PoseStamped>>(depth_sub_, pose_sub_, 3);
     sync_->registerCallback(std::bind(&OctomapDemap::demap_callback, this, ph::_1, ph::_2));
 
+    // services
     octomap_srv_ = this->create_service<octomap_msgs::srv::GetOctomap>("get_octomap", 
         std::bind(&OctomapDemap::octomap_srv, this, ph::_1, ph::_2));
 
@@ -62,17 +68,87 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     save_srv_ = this->create_service<std_srvs::srv::Empty>("save", 
         std::bind(&OctomapDemap::save_srv, this, ph::_1, ph::_2));
 
-
+    double resolution = this->declare_parameter("resolution", 0.1);
+    double probHit    = this->declare_parameter("sensor_model/hit", 0.7);
+    double probMiss   = this->declare_parameter("sensor_model/miss", 0.4);
+    double thresMin   = this->declare_parameter("sensor_model/min", 0.12);
+    double thresMax   = this->declare_parameter("sensor_model/max", 0.97);
 
     ocmap = std::make_shared<octomap::OcTree>(resolution);
-    if(read_ocmap()) // will override default map if read is successful
+    read_ocmap(); // read octomap from file if filename is not empty
+
+    // set map values cause they may be overwritten by read_ocmap()
+    ocmap->setResolution(resolution);
+    ocmap->setProbHit(probHit);
+    ocmap->setProbMiss(probMiss);
+    ocmap->setClampingThresMin(thresMin);
+    ocmap->setClampingThresMax(thresMax);
+
+#ifdef CUDA
+    pc_count = 0;
+    // calculate point count (i can use some math later on, but bruh)
+    for(int i = 0; i < width; i+=padding)
     {
-        // reset map params
-        ocmap->setResolution(resolution);
+        for(int j = 0; j < height; j+=padding)
+        {
+            pc_count+=3;   
+        }
     }
 
+    pc_size = pc_count * sizeof(double);
+    depth_size = width*height*sizeof(ushort);
 
-    print_params();
+    RCLCPP_INFO(this->get_logger(), "%d", pc_count);
+
+    // allocate memory
+    cudaMalloc<ushort>(&gpu_depth, depth_size);
+    cudaMalloc<double>(&gpu_pc, pc_size);
+    pc = (double*)malloc(pc_size);
+
+    block.x = 32;
+    block.y = 32;
+    grid.x = (width + block.x - 1) / block.x;
+    grid.y = (height + block.y - 1) / block.y;
+#endif
+
+    RCLCPP_INFO(this->get_logger(), "--- Launch Parameters ---");
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/fx : " << fx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/fy : " << fy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/cx : " << cx);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/cy : " << cy);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/hit : " << probHit);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/miss : " << probMiss);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/min : " << thresMin);
+    RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/max : " << thresMax);
+    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
+    RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
+    RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
+    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
+    RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
+    RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
+    RCLCPP_INFO_STREAM(this->get_logger(), "save_on_shutdown : " << save_on_shutdown);
+    RCLCPP_INFO(this->get_logger(), "-------------------------");
+
+#ifdef CUDA
+    int devCount;
+    cudaGetDeviceCount(&devCount);
+
+    RCLCPP_INFO_STREAM(this->get_logger(), "CUDA Devices: " << devCount);
+
+    for(int i = 0; i < devCount; ++i)
+    {
+        cudaDeviceProp props;
+        cudaGetDeviceProperties(&props, i);
+        RCLCPP_INFO_STREAM(this->get_logger(), "Dev-" << i << ": " << props.name << ": " << props.major << "." << props.minor);
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Global memory:   " << props.totalGlobalMem / (1024*1024) << "mb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Shared memory:   " << props.sharedMemPerBlock / 1024 << "kb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Constant memory: " << props.totalConstMem / 1024 << "kb");
+        RCLCPP_INFO_STREAM(this->get_logger(), "  Block registers: " << props.regsPerBlock);
+    }
+
+    RCLCPP_INFO(this->get_logger(), "-------------------------");
+#endif
+
     RCLCPP_INFO(this->get_logger(), "Setup is done");
 }
 
@@ -89,6 +165,13 @@ OctomapDemap::~OctomapDemap()
     {
         RCLCPP_ERROR(this->get_logger(), "Save on shutdown failed");
     }
+
+#ifdef CUDA
+    // deallocate memory
+    cudaFree(gpu_depth);
+    cudaFree(gpu_pc);
+    free(pc);
+#endif
 }
 
 bool OctomapDemap::octomap_srv(
@@ -139,24 +222,45 @@ void OctomapDemap::publish_all()
     octomap_publisher_->publish(msg);
 }
 
-void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose& pose)
+void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Pose& pose)
 {
     tf2::Transform t;
-    tf2::Vector3 p;
-
     tf2::fromMsg(pose, t);
-
     octomap::point3d origin(pose.position.x, pose.position.y, pose.position.z);
 
     auto start = this->now();
+    
+#ifdef CUDA
+    cudaMemcpy(gpu_depth ,depth.ptr(), depth_size, cudaMemcpyHostToDevice);
 
-    for(int i = padding-1; i < img.rows; i+=padding)
+    auto b = t.getBasis();
+    auto o = t.getOrigin();
+
+  	project_depth_img(gpu_depth, gpu_pc, width, padding,
+        grid, block,
+        fx, fy, cx, cy,
+        b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
+        b.getRow(1).getX(), b.getRow(1).getY(), b.getRow(1).getZ(),
+        b.getRow(2).getX(), b.getRow(2).getY(), b.getRow(2).getZ(),
+        o.getX(), o.getY(), o.getZ());
+
+    cudaMemcpy(pc, gpu_pc, pc_size, cudaMemcpyDeviceToHost);
+
+    for(int i = 0, n = pc_count-3; i < n; i+=3)
     {
-        const ushort* row = img.ptr<ushort>(i);
+        if(pc[i] == 0 && pc[i+1] == 0 && pc[i+2] == 0) { continue; }
+        ocmap->insertRay(origin, octomap::point3d(pc[i], pc[i+1], pc[i+2]));
+    }
+#else
+    tf2::Vector3 p;
 
-        for(int j = padding-1; j < img.cols; j+=padding)
+    for(int i = 0; i < depth.rows; i+=padding)
+    {
+        const ushort* row = depth.ptr<ushort>(i);
+
+        for(int j = 0; j < depth.cols; j+=padding)
         {
-            double d = depth_to_meters(row[j]);
+            const double d = depth_to_meters(row[j]);
 
             if(d == 0)
                 continue;
@@ -169,29 +273,12 @@ void OctomapDemap::update_map(const cv::Mat& img, const geometry_msgs::msg::Pose
             ocmap->insertRay(origin, octomap::point3d(p.getX(), p.getY(), p.getZ()));
         }
     }
+#endif
 
     auto end = this->now();
     auto diff = end - start;
     RCLCPP_INFO(this->get_logger(), "update map time(sec) : %.4f", diff.seconds());
 }
-
-void OctomapDemap::print_params()
-{
-    RCLCPP_INFO(this->get_logger(), "--- Launch Parameters ---");
-    RCLCPP_INFO_STREAM(this->get_logger(), "fx : " << fx);
-    RCLCPP_INFO_STREAM(this->get_logger(), "fy : " << fy);
-    RCLCPP_INFO_STREAM(this->get_logger(), "cx : " << cx);
-    RCLCPP_INFO_STREAM(this->get_logger(), "cy : " << cy);
-    RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
-    RCLCPP_INFO_STREAM(this->get_logger(), "encoding : " << encoding);
-    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
-    RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
-    RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
-    RCLCPP_INFO_STREAM(this->get_logger(), "input_pose_topic : " << "pose_in");
-    RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
-    RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
-    RCLCPP_INFO(this->get_logger(), "-------------------------");
-}   
 
 bool OctomapDemap::read_ocmap()
 {
