@@ -40,7 +40,6 @@ protected:
     double fy;
     double cx;
     double cy;
-    double resolution;
     int padding;    
     int width;
     int height;
@@ -78,8 +77,6 @@ protected:
     void update_map(const cv::Mat&, const geometry_msgs::msg::Pose&);
 
     void publish_all();
-
-    void print_params();
 
     void demap_callback(
         const sensor_msgs::msg::Image::ConstSharedPtr&, 
