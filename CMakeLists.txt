@@ -16,9 +16,23 @@ endif()
 
 # uncomment this line to use cuda
 #set(USE_CUDA TRUE)
-# for cuda usage set GPU compute capability
-# for example: 5.0 -> set(GPU_CC 50)
-set(GPU_CC 50)
+# You can change flags depending on your GPU
+set(CUDA_GENCODE_FLAGS
+  -gencode arch=compute_35,code=sm_35 
+  -gencode arch=compute_37,code=sm_37 
+  -gencode arch=compute_50,code=sm_50 
+  -gencode arch=compute_52,code=sm_52 
+  -gencode arch=compute_53,code=sm_53 
+  -gencode arch=compute_60,code=sm_60 
+  -gencode arch=compute_61,code=sm_61 
+  -gencode arch=compute_62,code=sm_62 
+  -gencode arch=compute_70,code=sm_70
+  -gencode arch=compute_72,code=sm_72 
+  -gencode arch=compute_75,code=sm_75 
+  -gencode arch=compute_80,code=sm_80 
+  -gencode arch=compute_86,code=sm_86 
+  -gencode arch=compute_87,code=sm_87 
+  -gencode arch=compute_87,code=compute_87)
 
 
 find_package(ament_cmake REQUIRED)
@@ -42,13 +56,12 @@ if(USE_CUDA)
   add_compile_definitions(CUDA)
 
   message("-- CUDA version: ${CUDA_VERSION}")
-  message("-- GPU Compute Capability: ${GPU_CC}")
   
   set(
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
     -O3
-    -gencode arch=compute_${GPU_CC},code=sm_${GPU_CC}
+    ${CUDA_GENCODE_FLAGS})
 
   cuda_add_library(octomap_demap SHARED
     src/${PROJECT_NAME}.cpp
