@@ -9,7 +9,7 @@
 - OpenCV
 - cv_bridge
 - message_filters
-- CUDA Toolkit (optional, see details in usage section)
+- CUDA Toolkit (optional, for [details](#Cuda))
 
 ## Usage
 
@@ -33,32 +33,13 @@ Main mapping and publishing node
 
 ### Subscribed Topics 
 
-* `depth/rect` (sensor_msgs/Image)   : depth image [Markdown - Link](#Dependencies)
+* `depth/rect` (sensor_msgs/Image)   : depth image see [here](#Image Data) for details
 * `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
 
 
+## Image Data
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## About Image Data
+This package supports 8 or 16 bit greyscale images
+`CV_U8C1` and `CV_16UC1` in OpenCV [literature](http://ninghang.blogspot.com/2012/11/list-of-mat-type-in-opencv.html) 
+`mono8` and `mono16` in cv_bridge [literature](http://docs.ros.org/en/diamondback/api/cv_bridge/html/c++/namespacecv__bridge.html#a49fedf7e642d505557b866f6e307a034)
 
