@@ -49,7 +49,7 @@ In addition, images are assumed to be rectified beforehand; thus no distortion p
 
 ## Cuda
 
-By default cuda is not supported. In order to compile with cuda, uncomment line at `CMakeLists.txt` file
+By default cuda is not supported. In order to compile with cuda, uncomment [line](https://github.com/berkealgul/ros2-octomap-depth-mapping/blob/1a8d29c2004f0891bf81fbf1937c6d8b9ced48cf/CMakeLists.txt#L18) at `CMakeLists.txt` file
 
 ```cmake
 # uncomment this line to use cuda
