@@ -28,14 +28,16 @@ ros2 launch octomap_depth_mapping mapping_launch.py
 Main mapping and publishing node
 
 ### Published Topics
-
-* `octomap_fullmap` (octomap_msgs/Octomap) : generated octomap (orginated at 0,0,0)
+|Name|Type|Description|
+|---|---|---|
+|`octomap_fullmap`| octomap_msgs/Octomap | generated octomap (orginated at 0,0,0) |
 
 ### Subscribed Topics 
-
-* `depth/rect` (sensor_msgs/Image)   : rectified depth image see [here](#About-Image-Data) for details
-* `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
-
+|Name|Type|Description|
+|:---:|---|---|
+|`depth/rect` | sensor_msgs/Image | rectified depth image see [here](#About-Image-Data) for details |
+| `pose` | geometry_msgs/PoseStamped | pose of the camera relative to world origin |
+ 
 ### Parameters
 |Name|Default|Type|Description|
 |---|---|---|---|
