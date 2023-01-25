@@ -39,4 +39,4 @@ inline double depth_to_meters(ushort raw_depth)
 
 } // octomap_depth_mapping
 
-#endif // DEPTH_CONVERSIONS_HPPs
+#endif // DEPTH_CONVERSIONS_HPP
