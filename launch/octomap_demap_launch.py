@@ -13,7 +13,7 @@ def generate_launch_description():
         DeclareLaunchArgument('camera_model/cx', default_value='316.8'),
         DeclareLaunchArgument('camera_model/cy', default_value='238.5'),
         DeclareLaunchArgument('resolution', default_value='0.05'),
-        DeclareLaunchArgument('padding', default_value='1'),
+        DeclareLaunchArgument('padding', default_value='5'),
         DeclareLaunchArgument('width', default_value='640'),
         DeclareLaunchArgument('height', default_value='480'),
         DeclareLaunchArgument('input_image_topic', default_value='depth/rect'),

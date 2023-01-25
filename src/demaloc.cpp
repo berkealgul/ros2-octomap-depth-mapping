@@ -93,10 +93,17 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     pc_size = pc_count * sizeof(double);
     depth_size = width*height*sizeof(ushort);
 
+    RCLCPP_INFO(this->get_logger(), "%d", pc_count);
+
     // allocate memory
     cudaMalloc<ushort>(&gpu_depth, depth_size);
     cudaMalloc<double>(&gpu_pc, pc_size);
     pc = (double*)malloc(pc_size);
+
+    block.x = 32;
+    block.y = 32;
+    grid.x = (width + block.x - 1) / block.x;
+    grid.y = (height + block.y - 1) / block.y;
 #endif
 
     print_params();
@@ -182,12 +189,13 @@ void OctomapDemap::update_map(const cv::Mat& depth, const geometry_msgs::msg::Po
     auto start = this->now();
     
 #ifdef CUDA
-    cudaMemcpy(gpu_depth ,depth.ptr(),depth_size,cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_depth ,depth.ptr(), depth_size, cudaMemcpyHostToDevice);
 
     auto b = t.getBasis();
     auto o = t.getOrigin();
 
   	project_depth_img(gpu_depth, gpu_pc, width, padding,
+        grid, block,
         fx, fy, cx, cy,
         b.getRow(0).getX(), b.getRow(0).getY(), b.getRow(0).getZ(),
         b.getRow(1).getX(), b.getRow(1).getY(), b.getRow(1).getZ(),

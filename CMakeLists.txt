@@ -14,8 +14,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 
-# user defined options
+# uncomment this line to use cuda
 set(USE_CUDA TRUE)
+
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)

@@ -25,6 +25,10 @@
 
 #include <opencv2/opencv.hpp>
 
+#ifdef CUDA
+#include <cuda_runtime.h>
+#endif
+
 namespace octomap_depth_mapping
 {
 
@@ -54,6 +58,8 @@ protected:
     int pc_count;
     size_t pc_size;
     size_t depth_size;
+    dim3 block;
+    dim3 grid;
 #endif
 
     rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr octomap_publisher_;

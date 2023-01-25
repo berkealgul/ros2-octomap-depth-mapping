@@ -8,6 +8,7 @@ namespace octomap_depth_mapping
 {
 
 void project_depth_img(ushort*, double*, int, int,
+    dim3, dim3,
     double, double, double, double,
     double, double, double,
     double, double, double,
