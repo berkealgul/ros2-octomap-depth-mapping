@@ -33,7 +33,7 @@ Main mapping and publishing node
 
 ### Subscribed Topics 
 
-* `depth/rect` (sensor_msgs/Image)   : rectified 16 bit greyscale channel (CV_16UC1) depth images 
+* `depth/rect` (sensor_msgs/Image)   : depth image
 * `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
 
 
