@@ -16,6 +16,9 @@ endif()
 
 # uncomment this line to use cuda
 #set(USE_CUDA TRUE)
+# for cuda usage set GPU compute capability
+# for example: 5.0 -> set(GPU_CC 50)
+set(GPU_CC 50)
 
 
 find_package(ament_cmake REQUIRED)
@@ -39,12 +42,13 @@ if(USE_CUDA)
   add_compile_definitions(CUDA)
 
   message("-- CUDA version: ${CUDA_VERSION}")
+  message("-- GPU Compute Capability: ${GPU_CC}")
   
   set(
     CUDA_NVCC_FLAGS
     ${CUDA_NVCC_FLAGS};
     -O3
-    -gencode arch=compute_50,code=sm_50)
+    -gencode arch=compute_${GPU_CC},code=sm_${GPU_CC}
 
   cuda_add_library(octomap_demap SHARED
     src/${PROJECT_NAME}.cpp
