@@ -20,12 +20,6 @@ __device__ __forceinline__ void depth_to_meters(ushort raw_depth, double& depth)
     else
         depth = 0;
 }
-
-// tum dataset cuda
-// __device__ __forceinline__ void depth_to_meters(ushort raw_depth, double& depth) 
-// {
-//     depth = raw_depth / 5000.0;      
-// }
 #else
 // kinect v2
 inline double depth_to_meters(ushort raw_depth) 
@@ -37,12 +31,6 @@ inline double depth_to_meters(ushort raw_depth)
 
     return 0;
 }
-
-// tum dataset
-// inline double depth_to_meters(ushort raw_depth) 
-// {
-//     return raw_depth / 5000.0;      
-// }
 #endif
 
 } // octomap_depth_mapping
