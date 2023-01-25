@@ -1,4 +1,4 @@
-#include "demaloc.hpp"
+#include "octomap_depth_mapping.hpp"
 #include "depth_conversions.hpp"
 
 #include <tf2/LinearMath/Transform.h>
@@ -120,14 +120,11 @@ OctomapDemap::OctomapDemap(const rclcpp::NodeOptions &options, const std::string
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/miss : " << probMiss);
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/min : " << thresMin);
     RCLCPP_INFO_STREAM(this->get_logger(), "sensor_model/max : " << thresMax);
+    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "width : " << width);
     RCLCPP_INFO_STREAM(this->get_logger(), "height : " << height);
     RCLCPP_INFO_STREAM(this->get_logger(), "padding : " << padding);
-    RCLCPP_INFO_STREAM(this->get_logger(), "resolution : " << resolution);
     RCLCPP_INFO_STREAM(this->get_logger(), "frame_id : " << frame_id);
-    RCLCPP_INFO_STREAM(this->get_logger(), "input_image_topic : " << "image_in");
-    RCLCPP_INFO_STREAM(this->get_logger(), "input_pose_topic : " << "pose_in");
-    RCLCPP_INFO_STREAM(this->get_logger(), "output_map_topic : " << "map_out");
     RCLCPP_INFO_STREAM(this->get_logger(), "filename : " << filename);
     RCLCPP_INFO_STREAM(this->get_logger(), "save_on_shutdown : " << save_on_shutdown);
     RCLCPP_INFO(this->get_logger(), "-------------------------");

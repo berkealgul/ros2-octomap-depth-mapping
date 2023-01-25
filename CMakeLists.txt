@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(demaloc)
+project(octomap_depth_mapping)
 
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -15,7 +15,7 @@ endif()
 
 
 # uncomment this line to use cuda
-set(USE_CUDA TRUE)
+#set(USE_CUDA TRUE)
 
 
 find_package(ament_cmake REQUIRED)
@@ -47,11 +47,11 @@ if(USE_CUDA)
     -gencode arch=compute_50,code=sm_50)
 
   cuda_add_library(octomap_demap SHARED
-    src/demaloc.cpp
+    src/${PROJECT_NAME}.cpp
     src/cuda_proj.cu)
 else()
   add_library(octomap_demap SHARED
-    src/demaloc.cpp)
+    src/${PROJECT_NAME}.cpp)
 endif()
 
 ament_target_dependencies(octomap_demap
@@ -70,7 +70,7 @@ ament_export_targets(octomap_demap HAS_LIBRARY_TARGET)
 
 rclcpp_components_register_node(octomap_demap
   PLUGIN "octomap_depth_mapping::OctomapDemap"
-  EXECUTABLE demaloc)
+  EXECUTABLE ${PROJECT_NAME})
 
 install(
   DIRECTORY include/
@@ -84,7 +84,7 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include)
 
-install(TARGETS demaloc
+install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
