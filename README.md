@@ -33,7 +33,7 @@ Main mapping and publishing node
 
 ### Subscribed Topics 
 
-* `depth/rect` (sensor_msgs/Image)   : depth image see [here](#Image Data) for details
+* `depth/rect` (sensor_msgs/Image)   : rectified depth image see [here](#Image Data) for details
 * `pose` (geometry_msgs/PoseStamped) : pose of camera relative to the world origin
 
 
@@ -44,4 +44,6 @@ This package supports 8 or 16 bit greyscale images
 `CV_U8C1` and `CV_16UC1` in OpenCV [literature](http://ninghang.blogspot.com/2012/11/list-of-mat-type-in-opencv.html) 
 
 `mono8` and `mono16` in cv_bridge [literature](http://docs.ros.org/en/diamondback/api/cv_bridge/html/c++/namespacecv__bridge.html#a49fedf7e642d505557b866f6e307a034)
+
+In addition, images are assumed to be rectified beforehand; thus no distortion parameters are needed for this package
 
