@@ -45,7 +45,7 @@ Main mapping and publishing node
 |`sensor_model/fy` | 524.0 | double | Camera fy calibration value |
 |`sensor_model/cx` | 316.8 | double | Camera cx calibration value |
 |`sensor_model/cy` | 238.5 | double | Camera cy calibration value |
-|`sensor_model/hit` | 0.7 | double | - |
+|`sensor_model/hit` | 0.7 | double | -- |
 |`sensor_model/miss`| 0.4 | double | - |
 |`sensor_model/min` | 0.12 | double | - |
 |`sensor_model/max` | 0.97 | double | -|
