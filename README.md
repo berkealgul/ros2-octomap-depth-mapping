@@ -2,7 +2,7 @@
 
 `octomap_depth_mapping` is a ROS2 package to create octomaps from depth images
 
-![Alt text](screenshot.png?raw=true "Title")
+<img src="screenshot.png" width="600" />
 
 ## Dependencies
 
