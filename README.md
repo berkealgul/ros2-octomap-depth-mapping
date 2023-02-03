@@ -29,18 +29,18 @@ Main mapping and publishing node
 
 ### Published Topics
 |Name|Type|Description|
-|---|---|---|
+|:---:|:---:|---|
 |`octomap_fullmap`| octomap_msgs/Octomap | generated octomap (orginated at 0,0,0) |
 
 ### Subscribed Topics 
 |Name|Type|Description|
-|:---:|---|---|
+|:---:|:---:|---|
 |`depth/rect` | sensor_msgs/Image | rectified depth image see [here](#About-Image-Data) for details |
 | `pose` | geometry_msgs/PoseStamped | pose of the camera relative to world origin |
  
 ### Parameters
 |Name|Default|Type|Description|
-|---|---|---|---|
+|:---:|:---:|:---:|---|
 |`sensor_model/fx` | 524.0 | double | Camera fx calibration value |
 |`sensor_model/fy` | 524.0 | double | Camera fy calibration value |
 |`sensor_model/cx` | 316.8 | double | Camera cx calibration value |
@@ -58,6 +58,13 @@ Main mapping and publishing node
 |`filename` |  | string | file path for saving & loading octomap (optional) |
 |`save_on_shutdown` | false | bool | If true octomap is saved before shutting down (if `filename` is not empty) |
 
+### Remappings
+|Name|Default|Description|
+|:---:|:---:|---|
+|`image_in` | depth/rect | Subscribed image topic |
+|`pose_in` | pose | Subscribed camera pose topic |
+|`map_out` | octomap_fullmap | Published octomap topic |
+
 ## About Image Data
 
 This package supports 8 and 16 bit greyscale images
@@ -70,7 +77,7 @@ In addition, images are assumed to be rectified beforehand; thus no distortion p
 
 ## Cuda
 
-By default cuda is not supported. In order to compile with cuda, uncomment [line](https://github.com/berkealgul/ros2-octomap-depth-mapping/blob/1a8d29c2004f0891bf81fbf1937c6d8b9ced48cf/CMakeLists.txt#L18) at `CMakeLists.txt` file
+By default cuda is not supported. In order to compile with cuda, uncomment [line](https://github.com/berkealgul/ros2-octomap-depth-mapping/blob/1a8d29c2004f0891bf81fbf1937c6d8b9ced48cf/CMakeLists.txt#L18) at `CMakeLists.txt` 
 
 ```cmake
 # uncomment this line to use cuda
