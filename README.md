@@ -20,6 +20,8 @@ You can clone this repository into your `<your-ros2-workspace>/src` folder and b
 ```bash
 git clone https://github.com/berkealgul/ros2-octomap-depth-mapping.git
 ```
+Before building this package, decide [cuda](#Cuda) usage and change your [distance function](#Distance-Funtion) if necessary
+
 To launch the package (dont forget to source the package)
 ```bash
 ros2 launch octomap_depth_mapping mapping_launch.py
