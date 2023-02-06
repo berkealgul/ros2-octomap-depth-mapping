@@ -67,6 +67,13 @@ Main mapping and publishing node
 |`pose_in` | pose | Subscribed camera pose topic |
 |`map_out` | octomap_fullmap | Published octomap topic |
 
+### Services
+|Name|Type|Description|
+|:---:|:---:|---|
+|`reset` | std_srvs/srv/Empty | Deletes octomap nodes |
+|`save` | std_srvs/srv/Empty | Saves octomap into `filename` locatiob|
+|`get_octomap` | octomap_msgs/srv/GetOctomap | Returns current state of octomap |
+
 ## About Image Data
 
 This package supports 8 and 16 bit greyscale images
@@ -89,3 +96,33 @@ By default cuda is not supported. In order to compile with cuda, uncomment [line
 This package developed with cuda toolkit 11.4 and supports with [gpu compute capabilities](https://developer.nvidia.com/cuda-gpus) 3.5 and above
 
 To learn more about cuda device compatibility [look at this link](https://docs.nvidia.com/deploy/cuda-compatibility/index.html)
+
+## Distance Function
+Every raw depth value in input image needs to be converted into meters before processing further. In this package this is done at `depth_to_meters` funtion at 
+[depth_conversions.hpp](https://github.com/berkealgul/ros2-octomap-depth-mapping/blob/master/include/depth_conversions.hpp) file. It it developed according to Kinect
+v2 depth camera, thus you may need to change this function(or cuda function) for the data model you have.
+
+```cpp
+inline double depth_to_meters(ushort raw_depth) 
+{
+    if(raw_depth > 6408)
+    {
+        return ((2.5-0.9)/(15800.0-6408.0))*raw_depth;
+    }        
+
+    return 0;
+}
+```
+For cuda users
+```cpp
+__device__ __forceinline__ void depth_to_meters(ushort raw_depth, double& depth) 
+{
+    if(raw_depth > 6408)
+    {
+        depth = ((2.5-0.9)/(15800.0-6408.0))*raw_depth;
+    }        
+    else
+        depth = 0;
+}
+```
+
