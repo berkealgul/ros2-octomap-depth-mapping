@@ -60,7 +60,7 @@ Main mapping and publishing node
 |`height` | 480 | int | Input image height |
 |`frame_id` | map | string | Octomap ROS frame id |
 |`filename` |  | string | file path for saving & loading octomap (optional) |
-|`save_on_shutdown` | false | bool | If true octomap is saved before shutting down (if `filename` is not empty) |
+|`save_on_shutdown` | false | bool | If true octomap is saved to `filename` before shutting down |
 
 ### Remappings
 |Name|Default|Description|
