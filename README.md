@@ -100,9 +100,9 @@ This package developed with cuda toolkit 11.4 and supports with [gpu compute cap
 To learn more about cuda device compatibility [look at this link](https://docs.nvidia.com/deploy/cuda-compatibility/index.html)
 
 ## Distance Function
-Every raw depth value in input image needs to be converted into meters before processing further. In this package this is done at `depth_to_meters` funtion at 
+Every raw depth value in input image needs to be converted into meters before processing further. In this package, this is done at `depth_to_meters` function at 
 [depth_conversions.hpp](https://github.com/berkealgul/ros2-octomap-depth-mapping/blob/master/include/depth_conversions.hpp) file. It it developed according to Kinect
-v2 depth camera, thus you may need to change this function(or cuda function) for the data model you have.
+v2 depth camera, thus you may need to change this function(or cuda function) for the sensor model you have.
 
 ```cpp
 inline double depth_to_meters(ushort raw_depth) 
