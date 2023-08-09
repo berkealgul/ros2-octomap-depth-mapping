@@ -73,7 +73,7 @@ Main mapping and publishing node
 |Name|Type|Description|
 |:---:|:---:|---|
 |`reset` | std_srvs/srv/Empty | Deletes octomap nodes |
-|`save` | std_srvs/srv/Empty | Saves octomap into `filename` locatiob|
+|`save` | std_srvs/srv/Empty | Saves octomap into `filename` location|
 |`get_octomap` | octomap_msgs/srv/GetOctomap | Returns current state of octomap |
 
 ## About Image Data
