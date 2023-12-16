@@ -80,9 +80,9 @@ Main mapping and publishing node
 
 This package supports 8 and 16 bit greyscale images
 
-`CV_U8C1` and `CV_16UC1` in OpenCV [literature](http://ninghang.blogspot.com/2012/11/list-of-mat-type-in-opencv.html) 
+`CV_U8C1` and `CV_16UC1` in OpenCV literature
 
-`mono8` and `mono16` in cv_bridge [literature](http://docs.ros.org/en/diamondback/api/cv_bridge/html/c++/namespacecv__bridge.html#a49fedf7e642d505557b866f6e307a034)
+`mono8` and `mono16` in cv_bridge literature
 
 In addition, images are assumed to be rectified beforehand; thus no distortion parameters are needed for this package
 
